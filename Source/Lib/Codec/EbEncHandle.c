@@ -349,9 +349,11 @@ void LoadDefaultBufferConfigurationSettings(
     uint32_t meSegW = (((sequence_control_set_ptr->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10) ? 1 : 10;
 
     uint32_t inputPic = SetParentPcs(&sequence_control_set_ptr->static_config);
-
-    unsigned int coreCount = GetNumCores();
-
+#if RUN_SIM
+    unsigned int coreCount = 40;
+#else
+    //unsigned int coreCount = GetNumCores();
+#endif
     sequence_control_set_ptr->output_stream_buffer_fifo_init_count = sequence_control_set_ptr->input_buffer_fifo_init_count = inputPic + SCD_LAD;
     sequence_control_set_ptr->output_stream_buffer_fifo_init_count = sequence_control_set_ptr->input_buffer_fifo_init_count + 4;
     // ME segments
@@ -832,11 +834,12 @@ EB_API EbErrorType eb_init_encoder(EbComponentType *svt_enc_component)
 
     // Updating the pictureControlSetPoolTotalCount based on the maximum look ahead distance
     for (instanceIndex = 0; instanceIndex < encHandlePtr->encodeInstanceTotalCount; ++instanceIndex) {
-
+#if !CONTENT_BASED_QPS
         if (encHandlePtr->sequenceControlSetInstanceArray[instanceIndex]->sequence_control_set_ptr->static_config.rate_control_mode == 0 && encHandlePtr->sequenceControlSetInstanceArray[instanceIndex]->sequence_control_set_ptr->static_config.improve_sharpness == 0) {
 
             encHandlePtr->sequenceControlSetInstanceArray[instanceIndex]->sequence_control_set_ptr->static_config.look_ahead_distance = 0;
         }
+#endif
         maxLookAheadDistance = MAX(maxLookAheadDistance, encHandlePtr->sequenceControlSetInstanceArray[instanceIndex]->sequence_control_set_ptr->static_config.look_ahead_distance);
     }
 

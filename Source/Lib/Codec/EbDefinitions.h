@@ -49,7 +49,10 @@ extern "C" {
 
 #define INTRA_CORE_OPT                                  1
 
-#define ENCODER_MODE_CLEANUP                            1                                          
+#define ENCODER_MODE_CLEANUP                            1          
+#define CONTENT_BASED_QPS                               1
+
+#define RUN_SIM                                         1
 
 #define ENABLE_INTRA_4x4                                1 //
 #define DISABLE_NSQ                                     1 //
