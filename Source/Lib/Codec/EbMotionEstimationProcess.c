@@ -217,7 +217,7 @@ EbErrorType MotionEstimationContextCtor(
 * ZZ Decimated SAD Computation
 ***************************************************************************************************/
 #if CONTENT_BASED_QPS
-int non_moving_th_shift[4] = { 6, 3, 0, 0 };
+int non_moving_th_shift[4] = { 4, 2, 0, 0 };
 #endif
 
 EbErrorType ComputeDecimatedZzSad(
@@ -334,18 +334,38 @@ EbErrorType ComputeDecimatedZzSad(
 
             // Keep track of non moving LCUs for QP modulation
 #if CONTENT_BASED_QPS
-            if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 2) >> non_moving_th_shift[sequence_control_set_ptr->input_resolution]) {
-                previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_0_ZZ_COST;
-            }
-            else if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 4) >> non_moving_th_shift[sequence_control_set_ptr->input_resolution]) {
-                previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_1_ZZ_COST;
-            }
-            else if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 8) >> non_moving_th_shift[sequence_control_set_ptr->input_resolution]) {
-                previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_2_ZZ_COST;
-            }
-            else { //if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 4)) {
-                previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_3_ZZ_COST;
-            }
+            previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] =
+                decimatedLcuCollocatedSad / (((decimatedLcuWidth * decimatedLcuHeight)));
+            
+            //if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight)) >> non_moving_th_shift[sequence_control_set_ptr->input_resolution]) {
+            //    previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_0_ZZ_COST;
+            //}
+            //else if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 2) >> non_moving_th_shift[sequence_control_set_ptr->input_resolution]) {
+            //    previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_0_1_ZZ_COST;
+            //}
+            //else if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 4) >> non_moving_th_shift[sequence_control_set_ptr->input_resolution]) {
+            //    previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_1_ZZ_COST;
+            //}
+            //else if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 8) >> non_moving_th_shift[sequence_control_set_ptr->input_resolution]) {
+            //    previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_2_ZZ_COST;
+            //}
+            //else { //if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 4)) {
+            //    previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_3_ZZ_COST;
+            //}
+
+
+            // if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 2) >> non_moving_th_shift[sequence_control_set_ptr->input_resolution]) {
+            //    previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_0_ZZ_COST;
+            //}
+            //else if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 4) >> non_moving_th_shift[sequence_control_set_ptr->input_resolution]) {
+            //    previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_1_ZZ_COST;
+            //}
+            //else if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 8) >> non_moving_th_shift[sequence_control_set_ptr->input_resolution]) {
+            //    previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_2_ZZ_COST;
+            //}
+            //else { //if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 4)) {
+            //    previous_picture_control_set_wrapper_ptr->non_moving_index_array[sb_index] = BEA_CLASS_3_ZZ_COST;
+            //}
 #else
 
             if (decimatedLcuCollocatedSad < ((decimatedLcuWidth * decimatedLcuHeight) * 2)) {
