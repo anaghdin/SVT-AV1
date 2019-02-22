@@ -962,11 +962,7 @@ void UpdateBeaInfoOverTime(
     uint16_t                                framesToCheckIndex;
     uint64_t                                nonMovingIndexSum = 0;
     uint32_t                                inputQueueIndex;
-#if CONTENT_BASED_QPS
-    uint64_t meDist = 0;
-    uint8_t me_dist_count = 0;
 
-#endif
     SequenceControlSet_t *sequence_control_set_ptr = (SequenceControlSet_t*)picture_control_set_ptr->sequence_control_set_wrapper_ptr->objectPtr;
     // Update motionIndexArray of the current picture by averaging the motionIndexArray of the N future pictures
     // Determine number of frames to check N
@@ -976,14 +972,8 @@ void UpdateBeaInfoOverTime(
     for (lcuIdx = 0; lcuIdx < picture_control_set_ptr->sb_total_count; ++lcuIdx) {
 
         uint32_t zzCostOverSlidingWindow = picture_control_set_ptr->zz_cost_array[lcuIdx];
-#if CONTENT_BASED_QPS
-       // meDist += (picture_control_set_ptr->slice_type == I_SLICE)? 0 :picture_control_set_ptr->rc_me_distortion[lcuIdx];
-       // me_dist_count = (picture_control_set_ptr->slice_type != I_SLICE && lcuIdx == 0) ? me_dist_count + 1 : me_dist_count;
         uint16_t nonMovingIndexOverSlidingWindow = picture_control_set_ptr->non_moving_index_array[lcuIdx];
 
-#else
-        uint16_t nonMovingIndexOverSlidingWindow = picture_control_set_ptr->non_moving_index_array[lcuIdx];
-#endif
         // Walk the first N entries in the sliding window starting picture + 1
         inputQueueIndex = (encode_context_ptr->initial_rate_control_reorder_queue_head_index == INITIAL_RATE_CONTROL_REORDER_QUEUE_MAX_DEPTH - 1) ? 0 : encode_context_ptr->initial_rate_control_reorder_queue_head_index + 1;
         for (framesToCheckIndex = 0; framesToCheckIndex < updateNonMovingIndexArrayFramesToCheck - 1; framesToCheckIndex++) {
@@ -998,43 +988,19 @@ void UpdateBeaInfoOverTime(
             }
 
             zzCostOverSlidingWindow += temporaryPictureControlSetPtr->zz_cost_array[lcuIdx];
-#if CONTENT_BASED_QPS
-            if (temporaryPictureControlSetPtr->temporal_layer_index < 2) {
-                if(lcuIdx == 0)
-                    me_dist_count++;
-              //  nonMovingIndexOverSlidingWindow_nonI += temporaryPictureControlSetPtr->rc_me_distortion[lcuIdx];
-                meDist += (temporaryPictureControlSetPtr->slice_type == I_SLICE) ? 0 : (uint64_t)temporaryPictureControlSetPtr->rc_me_distortion[lcuIdx];
-               // meDist += (temporaryPictureControlSetPtr->slice_type == I_SLICE) ? 0 : (uint64_t)temporaryPictureControlSetPtr->rc_me_distortion[lcuIdx] * (uint64_t)temporaryPictureControlSetPtr->rc_me_distortion[lcuIdx];
-            }
             nonMovingIndexOverSlidingWindow += temporaryPictureControlSetPtr->non_moving_index_array[lcuIdx];
 
-#else
-            nonMovingIndexOverSlidingWindow += temporaryPictureControlSetPtr->non_moving_index_array[lcuIdx];
-#endif
             // Increment the inputQueueIndex Iterator
             inputQueueIndex = (inputQueueIndex == INITIAL_RATE_CONTROL_REORDER_QUEUE_MAX_DEPTH - 1) ? 0 : inputQueueIndex + 1;
         }
 
         picture_control_set_ptr->zz_cost_array[lcuIdx] = (uint8_t)(zzCostOverSlidingWindow / (framesToCheckIndex + 1));
-#if 0//CONTENT_BASED_QPS
-        picture_control_set_ptr->non_moving_index_array[lcuIdx] = (uint32_t)(nonMovingIndexOverSlidingWindow / (4 + 1));
-       // meDist = meDist / (5);
-      //  meDist += (picture_control_set_ptr->slice_type == I_SLICE) ? 0 : picture_control_set_ptr->rc_me_distortion[lcuIdx];
-   //     printf("POC:%d\t%lld\n", picture_control_set_ptr->picture_number, meDist);
-#else
         picture_control_set_ptr->non_moving_index_array[lcuIdx] = (uint8_t)(nonMovingIndexOverSlidingWindow / (framesToCheckIndex + 1));
-#endif
+
         nonMovingIndexSum +=  picture_control_set_ptr->non_moving_index_array[lcuIdx];
     }
-#if CONTENT_BASED_QPS
-    me_dist_count = MAX(me_dist_count, 1);
-    picture_control_set_ptr->non_moving_index_average_nonI = (uint16_t)((uint64_t)meDist / picture_control_set_ptr->sb_total_count /256/ me_dist_count);
-    printf("POC:%d\t%lld\n", picture_control_set_ptr->picture_number, picture_control_set_ptr->non_moving_index_average_nonI);
     picture_control_set_ptr->non_moving_index_average = (uint16_t)nonMovingIndexSum / picture_control_set_ptr->sb_total_count;
 
-#else
-    picture_control_set_ptr->non_moving_index_average = (uint16_t)nonMovingIndexSum / picture_control_set_ptr->sb_total_count;
-#endif
 
     return;
 }
