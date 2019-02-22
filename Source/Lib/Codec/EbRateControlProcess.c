@@ -1304,7 +1304,9 @@ static int rc_pick_q_and_bounds_two_pass(
 
             // Hsan: cross multiplication to derive kf_boost from non_moving_average_score; kf_boost range is [kf_low,kf_high], and non_moving_average_score range [NON_MOVING_SCORE_0,NON_MOVING_SCORE_3]
             rc->kf_boost = (((NON_MOVING_SCORE_3 - picture_control_set_ptr->parent_pcs_ptr->non_moving_index_average)  * (kf_high - kf_low)) / NON_MOVING_SCORE_3) + kf_low;
-
+         //   rc->kf_boost = (((10 - picture_control_set_ptr->parent_pcs_ptr->non_moving_index_average - 3)  * (kf_high - kf_low)) / 10) + kf_low;
+        //    rc->kf_boost = (((600 - picture_control_set_ptr->parent_pcs_ptr->non_moving_index_average )  * (kf_high - kf_low)) / 600) + kf_low;
+          //  rc->kf_boost = (((40000 - picture_control_set_ptr->parent_pcs_ptr->non_moving_index_average )  * (kf_high - kf_low)) / 40000) + kf_low;
 
             // Baseline value derived from cpi->active_worst_quality and kf boost.
             active_best_quality =
@@ -1333,7 +1335,10 @@ static int rc_pick_q_and_bounds_two_pass(
         (refresh_golden_frame || is_intrl_arf_boost ||
             refresh_alt_ref_frame)) {
 
-        rc->gfu_boost = (((NON_MOVING_SCORE_3  - picture_control_set_ptr->parent_pcs_ptr->non_moving_index_average)  * (gf_high - gf_low)) / NON_MOVING_SCORE_3) + gf_low;
+        //rc->gfu_boost = (((20  - picture_control_set_ptr->parent_pcs_ptr->non_moving_index_average)  * (gf_high - gf_low)) / 20) + gf_low;
+        //rc->gfu_boost = (((NON_MOVING_SCORE_3 - picture_control_set_ptr->parent_pcs_ptr->non_moving_index_average)  * (gf_high - gf_low)) / NON_MOVING_SCORE_3) + gf_low;
+        rc->gfu_boost = (((150 - (picture_control_set_ptr->parent_pcs_ptr->non_moving_index_average_nonI))  * (gf_high - gf_low)) / 150) + gf_low;
+
         // Use the lower of active_worst_quality and recent
         // average Q as basis for GF/ARF best Q limit unless last frame was
         // a key frame.
@@ -1406,10 +1411,11 @@ static int rc_pick_q_and_bounds_two_pass(
     //        AOMMAX(active_worst_quality + qdelta, active_best_quality);
     //}
 
-    active_best_quality =
-        clamp(active_best_quality, rc->best_quality, rc->worst_quality);
-    active_worst_quality =
-        clamp(active_worst_quality, active_best_quality, rc->worst_quality);
+    // AMIR
+    //active_best_quality =
+    //    clamp(active_best_quality, rc->best_quality, rc->worst_quality);
+    //active_worst_quality =
+    //    clamp(active_worst_quality, active_best_quality, rc->worst_quality);
 
     {
         q = active_best_quality;
@@ -1613,12 +1619,12 @@ void* RateControlKernel(void *input_ptr)
 #if NEW_QPS
                 picture_control_set_ptr->parent_pcs_ptr->base_qindex = quantizer_to_qindex[picture_control_set_ptr->picture_qp];
 #endif
-                if (sequence_control_set_ptr->static_config.enable_qp_scaling_flag && picture_control_set_ptr->parent_pcs_ptr->qp_on_the_fly == EB_FALSE) {
+                if ( sequence_control_set_ptr->static_config.enable_qp_scaling_flag && picture_control_set_ptr->parent_pcs_ptr->qp_on_the_fly == EB_FALSE) {
 #if NEW_QPS
                     const int32_t qindex = quantizer_to_qindex[(uint8_t)sequence_control_set_ptr->qp];
                     const double q_val = av1_convert_qindex_to_q(qindex, (aom_bit_depth_t)sequence_control_set_ptr->static_config.encoder_bit_depth);
 #if CONTENT_BASED_QPS
-                    if (picture_control_set_ptr->picture_number < 49 /*&& picture_control_set_ptr->slice_type == I_SLICE*/) {
+                    if (picture_control_set_ptr->picture_number <  48 /*&& picture_control_set_ptr->slice_type == I_SLICE*/) {
                         // RATE_CONTROL rc;
                         int32_t new_qindex;
                         new_qindex = rc_pick_q_and_bounds_two_pass(
@@ -1631,6 +1637,17 @@ void* RateControlKernel(void *input_ptr)
                             (int32_t)quantizer_to_qindex[sequence_control_set_ptr->static_config.min_qp_allowed],
                                 (int32_t)quantizer_to_qindex[sequence_control_set_ptr->static_config.max_qp_allowed],
                                 (int32_t)(new_qindex));
+                    }
+                    else if (picture_control_set_ptr->slice_type == I_SLICE) {
+                        const int32_t delta_qindex = av1_compute_qdelta(
+                            q_val,
+                            q_val * 0.25,
+                            (aom_bit_depth_t)sequence_control_set_ptr->static_config.encoder_bit_depth);
+                        picture_control_set_ptr->parent_pcs_ptr->base_qindex =
+                            (uint8_t)CLIP3(
+                            (int32_t)quantizer_to_qindex[sequence_control_set_ptr->static_config.min_qp_allowed],
+                                (int32_t)quantizer_to_qindex[sequence_control_set_ptr->static_config.max_qp_allowed],
+                                (int32_t)(qindex + delta_qindex));
                     }
                     else {
 #if NEW_PRED_STRUCT                    

@@ -14027,6 +14027,9 @@ extern "C" {
         EbBool                                low_motion_content_flag;            // used by EncDecProcess()
         uint32_t                              zz_cost_average;                    // used by ModeDecisionConfigurationProcess()
         uint16_t                              non_moving_index_average;            // used by ModeDecisionConfigurationProcess()
+#if CONTENT_BASED_QPS
+        uint16_t                              non_moving_index_average_nonI;            // used by ModeDecisionConfigurationProcess()
+#endif
         EbBool                               *sb_isolated_non_homogeneous_area_array;            // used by ModeDecisionConfigurationProcess()
         uint8_t                              *cu32x32_clean_sparse_coeff_map_array; //32x32 cu array for clean sparse coeff
         uint16_t                              cu32x32_clean_sparse_coeff_map_array_size;

@@ -161,7 +161,7 @@ void DerivePictureActivityStatistics(
 #if CONTENT_BASED_QPS
     picture_control_set_ptr->non_moving_index_average = (uint16_t)(nonMovingIndexSum / complete_sb_count);
 
-    printf("POC:%d\t%d\n", picture_control_set_ptr->picture_number, picture_control_set_ptr->non_moving_index_average);
+  //  printf("POC:%d\t%d\n", picture_control_set_ptr->picture_number, picture_control_set_ptr->non_moving_index_average);
 #else
     picture_control_set_ptr->non_moving_index_average = (uint16_t)(nonMovingIndexSum / sb_total_count);
 #endif
