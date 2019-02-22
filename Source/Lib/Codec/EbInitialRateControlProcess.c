@@ -963,6 +963,7 @@ void UpdateBeaInfoOverTime(
     uint64_t                                nonMovingIndexSum = 0;
     uint32_t                                inputQueueIndex;
 
+
     SequenceControlSet_t *sequence_control_set_ptr = (SequenceControlSet_t*)picture_control_set_ptr->sequence_control_set_wrapper_ptr->objectPtr;
     // Update motionIndexArray of the current picture by averaging the motionIndexArray of the N future pictures
     // Determine number of frames to check N
@@ -997,10 +998,10 @@ void UpdateBeaInfoOverTime(
         picture_control_set_ptr->zz_cost_array[lcuIdx] = (uint8_t)(zzCostOverSlidingWindow / (framesToCheckIndex + 1));
         picture_control_set_ptr->non_moving_index_array[lcuIdx] = (uint8_t)(nonMovingIndexOverSlidingWindow / (framesToCheckIndex + 1));
 
-        nonMovingIndexSum +=  picture_control_set_ptr->non_moving_index_array[lcuIdx];
+        nonMovingIndexSum += picture_control_set_ptr->non_moving_index_array[lcuIdx];
     }
-    picture_control_set_ptr->non_moving_index_average = (uint16_t)nonMovingIndexSum / picture_control_set_ptr->sb_total_count;
 
+    picture_control_set_ptr->non_moving_index_average = (uint16_t)nonMovingIndexSum / picture_control_set_ptr->sb_total_count;
 
     return;
 }
