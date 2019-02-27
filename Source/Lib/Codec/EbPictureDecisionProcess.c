@@ -675,6 +675,9 @@ EbErrorType signal_derivation_multi_processes_oq(
 #endif
     picture_control_set_ptr->nsq_search_level        = NSQ_SEARCH_FULL;
 
+#if FEATURES_OFF
+    picture_control_set_ptr->nsq_search_level = NSQ_SEARCH_OFF;
+#endif
 
     if (picture_control_set_ptr->nsq_search_level == NSQ_SEARCH_OFF) {
         if (picture_control_set_ptr->pic_depth_mode <= PIC_ALL_C_DEPTH_MODE) picture_control_set_ptr->pic_depth_mode = PIC_SQ_DEPTH_MODE;
@@ -707,6 +710,9 @@ EbErrorType signal_derivation_multi_processes_oq(
 
 #endif
 
+#if FEATURES_OFF
+    picture_control_set_ptr->interpolation_search_level = IT_SEARCH_OFF;
+#endif
     // Loop filter Level                            Settings
     // 0                                            OFF
     // 1                                            CU-BASED
@@ -794,7 +800,10 @@ EbErrorType signal_derivation_multi_processes_oq(
     else {
         picture_control_set_ptr->tx_search_level = TX_SEARCH_FULL_LOOP;
     }
+#if FEATURES_OFF
+    picture_control_set_ptr->tx_search_level = TX_SEARCH_OFF;
 
+#endif
     // Set tx search skip weights (MAX_MODE_COST: no skipping; 0: always skipping)
 #if TUNED_SETTINGS_FOR_M0
     if (!MR_MODE)

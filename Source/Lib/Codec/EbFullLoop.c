@@ -1081,6 +1081,23 @@ void ProductFullLoop(
             &yFullCost,
             context_ptr->full_lambda);
 
+#if EOB_ZERO
+        if (!(candidateBuffer->candidate_ptr->y_has_coeff && (1 << txb_itr))) {
+            candidateBuffer->candidate_ptr->quantized_dc[0] = 0;
+            //TransformUnit_t       *txb_ptr = &context_ptr->cu_ptr->transform_unit_array[txb_itr];
+            // INTER. Chroma follows Luma in transform type
+            if (candidateBuffer->candidate_ptr->type == INTER_MODE) {
+                //candidateBuffer->candidate_ptr->transform_type = 
+                candidateBuffer->candidate_ptr->transform_type[PLANE_TYPE_Y] = DCT_DCT;
+                candidateBuffer->candidate_ptr->transform_type[PLANE_TYPE_UV] = DCT_DCT;
+            }
+            else { // INTRA
+                //txb_ptr->transform_type[PLANE_TYPE_Y] = DCT_DCT;
+                candidateBuffer->candidate_ptr->transform_type[PLANE_TYPE_Y] = DCT_DCT;
+            }
+        }
+#endif
+        
 
         (*y_coeff_bits) += yTuCoeffBits;
 
@@ -1544,6 +1561,7 @@ void encode_pass_tx_search(
             &yTuCoeffBits,
             &yFullCost,
             context_ptr->full_lambda);
+
 
         if (yFullCost < bestFullCost) {
             bestFullCost = yFullCost;

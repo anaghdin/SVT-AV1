@@ -3846,6 +3846,30 @@ EB_EXTERN void AV1EncodePass(
                             txb_origin_y = context_ptr->cu_origin_y + context_ptr->blk_geom->tx_boff_y[tuIt];
                             if (!zeroLumaCbfMD)
                                 //inter mode  1
+#if EOB_ZERO
+                                Av1EncodeLoopFunctionTable[is16bit](
+#if ENCDEC_TX_SEARCH
+                                    picture_control_set_ptr,
+#endif
+                                    context_ptr,
+                                    sb_ptr,
+                                    txb_origin_x,   //pic org
+                                    txb_origin_y,
+                                    cbQp,
+                                    reconBuffer,
+                                    coeff_buffer_sb,
+                                    residual_buffer,
+                                    transform_buffer,
+                                    inverse_quant_buffer,
+                                    transform_inner_array_ptr,
+                                    asm_type,
+                                    count_non_zero_coeffs,
+                                    0 ? PICTURE_BUFFER_DESC_FULL_MASK : PICTURE_BUFFER_DESC_LUMA_MASK,
+                                    useDeltaQpSegments,
+                                    cu_ptr->delta_qp > 0 ? 0 : dZoffset,
+                                    eobs[context_ptr->txb_itr],
+                                    cuPlane);
+#else
                                 Av1EncodeLoopFunctionTable[is16bit](
 #if ENCDEC_TX_SEARCH
                                     picture_control_set_ptr,
@@ -3868,6 +3892,7 @@ EB_EXTERN void AV1EncodePass(
                                     cu_ptr->delta_qp > 0 ? 0 : dZoffset,
                                     eobs[context_ptr->txb_itr],
                                     cuPlane);
+#endif
 
                             // SKIP the CBF zero mode for DC path. There are problems with cost calculations
                             if (context_ptr->trans_coeff_shape_luma != ONLY_DC_SHAPE) {
@@ -3934,7 +3959,11 @@ EB_EXTERN void AV1EncodePass(
                                         &crTuCoeffBits,
                                         context_ptr->blk_geom->txsize[context_ptr->txb_itr],
                                         context_ptr->blk_geom->txsize_uv[context_ptr->txb_itr],
+#if EOB_ZERO
+                                        0 ? COMPONENT_ALL : COMPONENT_LUMA,
+#else
                                         context_ptr->blk_geom->has_uv ? COMPONENT_ALL : COMPONENT_LUMA,
+#endif
                                         asm_type);
                                 }
 
@@ -3953,6 +3982,110 @@ EB_EXTERN void AV1EncodePass(
                                     cu_ptr->transform_unit_array[context_ptr->txb_itr].u_has_coeff = 0;
                                     cu_ptr->transform_unit_array[context_ptr->txb_itr].v_has_coeff = 0;
                                 }
+#if EOB_ZERO
+                                if(context_ptr->blk_geom->has_uv)
+                                Av1EncodeLoopFunctionTable[is16bit](
+#if ENCDEC_TX_SEARCH
+                                    picture_control_set_ptr,
+#endif
+                                    context_ptr,
+                                    sb_ptr,
+                                    txb_origin_x,   //pic org
+                                    txb_origin_y,
+                                    cbQp,
+                                    reconBuffer,
+                                    coeff_buffer_sb,
+                                    residual_buffer,
+                                    transform_buffer,
+                                    inverse_quant_buffer,
+                                    transform_inner_array_ptr,
+                                    asm_type,
+                                    count_non_zero_coeffs,
+                                    PICTURE_BUFFER_DESC_CHROMA_MASK,
+                                    useDeltaQpSegments,
+                                    cu_ptr->delta_qp > 0 ? 0 : dZoffset,
+                                    eobs[context_ptr->txb_itr],
+                                    cuPlane);
+
+                                ////////////////////////////////
+
+//                                // SKIP the CBF zero mode for DC path. There are problems with cost calculations
+//                                if (context_ptr->trans_coeff_shape_luma != ONLY_DC_SHAPE) {
+//                                    // Compute Tu distortion
+//                                    if (!zeroLumaCbfMD)
+//
+//                                        // LUMA DISTORTION
+//                                        PictureFullDistortion32Bits(
+//                                            transform_buffer,
+//                                            context_ptr->coded_area_sb,
+//                                            context_ptr->coded_area_sb_uv, 
+//                                            inverse_quant_buffer,
+//                                            context_ptr->coded_area_sb,
+//                                            context_ptr->coded_area_sb_uv,
+//                                            blk_geom->tx_width[tuIt],
+//                                            blk_geom->tx_height[tuIt],
+//                                            context_ptr->blk_geom->bwidth_uv,
+//                                            context_ptr->blk_geom->bheight_uv,
+//                                            yTuFullDistortion,
+//                                            yTuFullDistortion,
+//                                            yTuFullDistortion,
+//                                            eobs[context_ptr->txb_itr][0],
+//                                            eobs[context_ptr->txb_itr][1],
+//                                            eobs[context_ptr->txb_itr][2],
+//                                            context_ptr->blk_geom->has_uv ? COMPONENT_ALL : COMPONENT_LUMA, 
+//                                            asm_type);
+//                                    TxSize  txSize = blk_geom->txsize[context_ptr->txb_itr];
+//                                    int32_t shift = (MAX_TX_SCALE - av1_get_tx_scale(txSize)) * 2;
+//                                    yTuFullDistortion[DIST_CALC_RESIDUAL] = RIGHT_SIGNED_SHIFT(yTuFullDistortion[DIST_CALC_RESIDUAL], shift);
+//                                    yTuFullDistortion[DIST_CALC_PREDICTION] = RIGHT_SIGNED_SHIFT(yTuFullDistortion[DIST_CALC_PREDICTION], shift);
+//
+//                                    yTuCoeffBits = 0;
+//                                    cbTuCoeffBits = 0;
+//                                    crTuCoeffBits = 0;
+//
+//                                    if (!zeroLumaCbfMD) {
+//
+//                                        ModeDecisionCandidateBuffer_t         **candidateBufferPtrArrayBase = context_ptr->md_context->candidate_buffer_ptr_array;
+//                                        ModeDecisionCandidateBuffer_t         **candidate_buffer_ptr_array = &(candidateBufferPtrArrayBase[context_ptr->md_context->buffer_depth_index_start[0]]);
+//                                        ModeDecisionCandidateBuffer_t          *candidateBuffer;
+//
+//                                        // Set the Candidate Buffer
+//                                        candidateBuffer = candidate_buffer_ptr_array[0];
+//                                        // Rate estimation function uses the values from CandidatePtr. The right values are copied from cu_ptr to CandidatePtr
+//                                        candidateBuffer->candidate_ptr->transform_type[PLANE_TYPE_Y] = cu_ptr->transform_unit_array[tuIt].transform_type[PLANE_TYPE_Y];
+//                                        candidateBuffer->candidate_ptr->transform_type[PLANE_TYPE_UV] = cu_ptr->transform_unit_array[tuIt].transform_type[PLANE_TYPE_UV];
+//                                        candidateBuffer->candidate_ptr->type = cu_ptr->prediction_mode_flag;
+//
+//                                        const uint32_t coeff1dOffset = context_ptr->coded_area_sb;
+//
+//                                        Av1TuEstimateCoeffBits(
+//                                            picture_control_set_ptr,
+//                                            candidateBuffer,
+//                                            cu_ptr,
+//                                            coeff1dOffset,
+//                                            context_ptr->coded_area_sb_uv,
+//                                            coeff_est_entropy_coder_ptr,
+//                                            coeff_buffer_sb,
+//                                            eobs[context_ptr->txb_itr][0],
+//                                            eobs[context_ptr->txb_itr][1],
+//                                            eobs[context_ptr->txb_itr][2],
+//                                            &yTuCoeffBits,
+//                                            &cbTuCoeffBits,
+//                                            &crTuCoeffBits,
+//                                            context_ptr->blk_geom->txsize[context_ptr->txb_itr],
+//                                            context_ptr->blk_geom->txsize_uv[context_ptr->txb_itr],
+//#if 0 //EOB_ZERO
+//                                            0 ? COMPONENT_ALL : COMPONENT_LUMA,
+//#else
+//                                            context_ptr->blk_geom->has_uv ? COMPONENT_ALL : COMPONENT_LUMA,
+//#endif
+//                                            asm_type);
+//                                    }
+//
+//
+
+
+#endif
                                 // Update count_non_zero_coeffs after CBF decision
                                 if (cu_ptr->transform_unit_array[context_ptr->txb_itr].y_has_coeff == EB_FALSE)
                                     count_non_zero_coeffs[0] = 0;

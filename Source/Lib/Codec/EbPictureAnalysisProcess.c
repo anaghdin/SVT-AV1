@@ -3315,6 +3315,10 @@ EbErrorType DetectInputPictureNoise(
     if (picture_control_set_ptr->pic_noise_class >= PIC_NOISE_CLASS_4)
         picture_control_set_ptr->pic_noise_class = PIC_NOISE_CLASS_3_1;
 
+    /*if ((picture_control_set_ptr->picture_number == 16 || picture_control_set_ptr->picture_number == 32 || picture_control_set_ptr->picture_number == 48))
+        picture_control_set_ptr->pic_noise_class = PIC_NOISE_CLASS_3_1;
+    printf("DENOISE %d\t%d\t%d\n", picture_control_set_ptr->picture_number, picNoiseVariance, picture_control_set_ptr->pic_noise_class);
+    */
     return return_error;
 
 }
@@ -4114,7 +4118,11 @@ void PicturePreProcessingOperations(
             sequence_control_set_ptr,
             picture_control_set_ptr,
             sb_total_count,
+#if 0// AMIR
+            picture_control_set_ptr->temporal_layer_index == 0 && picture_control_set_ptr->slice_type != 2,
+#else
             sequence_control_set_ptr->static_config.enable_denoise_flag,
+#endif
             picture_width_in_sb,
             asm_type);
     }

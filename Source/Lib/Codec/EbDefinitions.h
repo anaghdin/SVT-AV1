@@ -37,6 +37,11 @@ extern "C" {
 
      //Mode definition : Only one mode should be ON at a time
 
+#define EOB_ZERO 0
+#define SKIP_COEFF_RATE 1
+#define FEATURES_OFF 0
+
+
 #define MR_MODE                                         0
 #define SHUT_FILTERING                                  0 // CDEF RESTORATION DLF
     ////
@@ -55,11 +60,16 @@ extern "C" {
 
 #define ENABLE_INTRA_4x4                                1 //
 #define DISABLE_NSQ                                     1 //
+#if FEATURES_OFF
+#define DISABLE_128X128_SB                              1
+#else
 #define DISABLE_128X128_SB                              0
+#endif
 #define ENABLE_INTER_4x4                                0 // optional
 #define DISABLE_4xN_Nx4                                 1 //
 #define DISABLE_128x128                                 0 //
 #define VCI_CANDIDATE_II                                1
+
 
 #if VCI_CANDIDATE_II
 #define INTRA_ASM                                       1
@@ -163,6 +173,8 @@ extern "C" {
 #define ADD_DELTA_QP_SUPPORT                      0  // Add delta QP support - Please enable this flag and iproveSharpness (config) to test the QPM
 #if DISABLE_128X128_SB
 #define BLOCK_MAX_COUNT                           1101
+#define BLOCK_MAX_COUNT_SB_128                    1101  // TODO: reduce alloction for 64x64
+#define BLOCK_MAX_COUNT_SB_64                     1101  // TODO: reduce alloction for 64x64
 #else
 #define BLOCK_MAX_COUNT_SB_128                    4421  // TODO: reduce alloction for 64x64
 #define BLOCK_MAX_COUNT_SB_64                     1101  // TODO: reduce alloction for 64x64

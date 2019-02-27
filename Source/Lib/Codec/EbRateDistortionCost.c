@@ -1449,7 +1449,14 @@ EbErrorType Av1FullCost(
     }
 
     // Coeff rate
+#if  SKIP_COEFF_RATE
+    if(candidate_buffer_ptr->candidate_ptr->block_has_coeff)
+        coeffRate = (*y_coeff_bits + *cb_coeff_bits + *cr_coeff_bits);
+    else
+        coeffRate = (uint64_t)candidate_buffer_ptr->candidate_ptr->md_rate_estimation_ptr->skipFacBits[cu_ptr->skip_coeff_context][1];
+#else
     coeffRate = (*y_coeff_bits + *cb_coeff_bits + *cr_coeff_bits);
+#endif
     luma_sse = y_distortion[0];
     chromaSse = cb_distortion[0] + cr_distortion[0];
 
@@ -2024,7 +2031,6 @@ EbErrorType Av1TuCalcCost(
 
         const TxSize txs_ctx = (TxSize)((txsize_sqr_map[txsize] + txsize_sqr_up_map[txsize] + 1) >> 1);
         const LV_MAP_COEFF_COST *const coeff_costs = &candidate_ptr->md_rate_estimation_ptr->coeffFacBits[txs_ctx][0];
-
         y_zero_coeff_luma_flag_bits_num = coeff_costs->txb_skip_cost[txbSkipCtx][1];
 
         y_nonzero_coeff_rate = *yTuCoeffBits; // yNonZeroCbfLumaFlagBitsNum is already calculated inside yTuCoeffBits
@@ -2123,11 +2129,18 @@ EbErrorType Av1TuCalcCostLuma(
     yNonZeroCbfRate = *yTuCoeffBits; // yNonZeroCbfLumaFlagBitsNum is already calculated inside yTuCoeffBits
 
     yZeroCbfRate = yZeroCbfLumaFlagBitsNum;
-
+#if EOB_ZERO
+    if(y_count_non_zero_coeffs)
+        yZeroCbfRate = 0;
+    //if (txb_ptr->transform_type[PLANE_TYPE_Y] != DCT_DCT) {
+    //TransformUnit_t       *txb_ptr = &cu_ptr->transform_unit_array[context_ptr->txb_itr];
+    if (candidate_ptr->type == INTRA_MODE) {
+#else
 #if CBF_ZERO_OFF
     if (1) {
 #else
     if (candidate_ptr->type == INTRA_MODE) {
+#endif
 #endif
         yZeroCbfCost = 0xFFFFFFFFFFFFFFFFull;
 
@@ -2138,15 +2151,24 @@ EbErrorType Av1TuCalcCostLuma(
     }
 
     // **Compute Cost
-    yNonZeroCbfCost = RDCOST(lambda, yNonZeroCbfRate, yNonZeroCbfDistortion);
+    yNonZeroCbfCost = RDCOST(lambda, yNonZeroCbfRate, yNonZeroCbfDistortion); 
+#if EOB_ZERO
+    y_count_non_zero_coeffs = (yNonZeroCbfCost < yZeroCbfCost) ? y_count_non_zero_coeffs : 0;
+    if ((yNonZeroCbfCost < yZeroCbfCost))
+        candidate_ptr->quantized_dc[0] = 0;
+#endif
     candidate_ptr->y_has_coeff |= ((y_count_non_zero_coeffs != 0) << tu_index);
+#if EOB_ZERO
+     *yTuCoeffBits = (yNonZeroCbfCost < yZeroCbfCost) ? *yTuCoeffBits : yZeroCbfRate;
+#else
     *yTuCoeffBits = (yNonZeroCbfCost < yZeroCbfCost) ? *yTuCoeffBits : 0;
+#endif
     yTuDistortion[DIST_CALC_RESIDUAL] = (yNonZeroCbfCost < yZeroCbfCost) ? yTuDistortion[DIST_CALC_RESIDUAL] : yTuDistortion[DIST_CALC_PREDICTION];
 
     *yFullCost = MIN(yNonZeroCbfCost, yZeroCbfCost);
 
     return return_error;
-    }
+ }
 
 static INLINE int32_t partition_cdf_length(BlockSize bsize) {
     if (bsize <= BLOCK_8X8)
@@ -2358,10 +2380,23 @@ EbErrorType Av1EncodeTuCalcCost(
         yNonZeroCbfRate = *yTuCoeffBits; // yNonZeroCbfLumaFlagBitsNum is already calculated inside yTuCoeffBits
 
         yZeroCbfRate = yZeroCbfLumaFlagBitsNum;
+
+
+
+#if EOB_ZERO
+        if (y_count_non_zero_coeffs)
+            yZeroCbfRate = 0;
+        TransformUnit_t       *txb_ptr = &cu_ptr->transform_unit_array[context_ptr->txb_itr];
+        //if (txb_ptr->transform_type[PLANE_TYPE_Y] != DCT_DCT) {
+        if (cu_ptr->prediction_mode_flag == INTRA_MODE) {
+#else
+        // **Compute Cost
+
 #if CBF_ZERO_OFF || TX_TYPE_FIX
         if (1) {
 #else
         if (cu_ptr->prediction_mode_flag == INTRA_MODE) {
+#endif
 #endif
             yZeroCbfCost = 0xFFFFFFFFFFFFFFFFull;
 
@@ -2373,8 +2408,27 @@ EbErrorType Av1EncodeTuCalcCost(
 
         // **Compute Cost
         yNonZeroCbfCost = RDCOST(lambda, yNonZeroCbfRate, yNonZeroCbfDistortion);
+#if EOB_ZERO
+        y_count_non_zero_coeffs = (yNonZeroCbfCost < yZeroCbfCost) ? y_count_non_zero_coeffs : 0;
+        if (yNonZeroCbfCost >= yZeroCbfCost){
+            TransformUnit_t       *txb_ptr = &cu_ptr->transform_unit_array[context_ptr->txb_itr];
+            // INTER. Chroma follows Luma in transform type
+            if (cu_ptr->prediction_mode_flag == INTER_MODE) {
+                txb_ptr->transform_type[PLANE_TYPE_Y] = DCT_DCT;
+                txb_ptr->transform_type[PLANE_TYPE_UV] = DCT_DCT;
+            }
+            else { // INTRA
+                txb_ptr->transform_type[PLANE_TYPE_Y] = DCT_DCT;
+            }
+        }
+#endif
+
         cu_ptr->transform_unit_array[tu_index].y_has_coeff = ((y_count_non_zero_coeffs != 0) && (yNonZeroCbfCost < yZeroCbfCost)) ? EB_TRUE : EB_FALSE;
+#if EOB_ZERO
+        *yTuCoeffBits = (yNonZeroCbfCost < yZeroCbfCost) ? *yTuCoeffBits : yZeroCbfRate;
+#else
         *yTuCoeffBits = (yNonZeroCbfCost < yZeroCbfCost) ? *yTuCoeffBits : 0;
+#endif
         yTuDistortion[DIST_CALC_RESIDUAL] = (yNonZeroCbfCost < yZeroCbfCost) ? yTuDistortion[DIST_CALC_RESIDUAL] : yTuDistortion[DIST_CALC_PREDICTION];
 
         }
