@@ -1450,6 +1450,7 @@ void ProductPerformFastLoop(
                 chromaFastDistortion,
                 context_ptr->fast_lambda,
                 picture_control_set_ptr);
+
             (*secondFastCostSearchCandidateTotalCount)++;
         }
 

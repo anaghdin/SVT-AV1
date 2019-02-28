@@ -5299,6 +5299,8 @@ EbErrorType write_modes_b(
 
 
                     if (inter_mode == NEWMV || inter_mode == NEW_NEWMV || have_nearmv_in_inter_mode(inter_mode)) {
+
+
                         WriteDrlIdx(
                             frameContext,
                             ecWriter,
@@ -5322,7 +5324,15 @@ EbErrorType write_modes_b(
                             mv.row = cu_ptr->prediction_unit_array[0].mv[1].y;
                             mv.col = cu_ptr->prediction_unit_array[0].mv[1].x;
                         }
-
+#if BASE_LAYER_REF
+                        if (inter_mode == NEWMV && cu_ptr->prediction_unit_array[0].ref_frame_type == BWDREF_FRAME && cu_ptr->prediction_unit_array[0].is_compound == 0 && picture_control_set_ptr->parent_pcs_ptr->temporal_layer_index == 0) {
+                            printf("%d\t(%d\t%d)\t(%d\t%d)\n", picture_control_set_ptr->parent_pcs_ptr->picture_number,
+                                mv.row,
+                                mv.col,
+                                ref_mv.as_mv.row,
+                                ref_mv.as_mv.col);
+                        }
+#endif
                         av1_encode_mv(
                             picture_control_set_ptr->parent_pcs_ptr,
                             ecWriter,

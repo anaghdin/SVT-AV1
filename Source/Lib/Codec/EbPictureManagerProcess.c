@@ -251,7 +251,14 @@ void* PictureManagerKernel(void *input_ptr)
                             dependant_list_removed_entries = referenceEntryPtr->depList0Count + referenceEntryPtr->depList1Count - referenceEntryPtr->dependentCount;
 
                             referenceEntryPtr->depList0Count = referenceEntryPtr->list0.listCount;
+#if BASE_LAYER_REF
+                            if (picture_control_set_ptr->slice_type == I_SLICE)
+                                referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + 3;
+                            else
+                                referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount;
+#else
                             referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount;
+#endif
                             referenceEntryPtr->dependentCount = referenceEntryPtr->depList0Count + referenceEntryPtr->depList1Count - dependant_list_removed_entries;
 
                         }
@@ -415,6 +422,16 @@ void* PictureManagerKernel(void *input_ptr)
                 picture_control_set_ptr->ref_list1_count = (picture_control_set_ptr->slice_type == I_SLICE) ? 0 : (uint8_t)predPositionPtr->refList1.referenceListCount;
                 inputEntryPtr->list0Ptr = &predPositionPtr->refList0;
                 inputEntryPtr->list1Ptr = &predPositionPtr->refList1;
+#if BASE_LAYER_REF
+                if (picture_control_set_ptr->temporal_layer_index == 0 && picture_control_set_ptr->slice_type != I_SLICE) {
+                    if (1/* picture_control_set_ptr->picture_number == 48*/)
+                        inputEntryPtr->list0Ptr->referenceList = picture_control_set_ptr->picture_number;
+                    else
+                        inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
+
+                //    inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
+                }
+#endif
 
                 // Check if the ReferencePictureQueue is full.
                 CHECK_REPORT_ERROR(
@@ -447,7 +464,15 @@ void* PictureManagerKernel(void *input_ptr)
                 }
 
                 referenceEntryPtr->depList0Count = referenceEntryPtr->list0.listCount;
+
+#if BASE_LAYER_REF
+                if (picture_control_set_ptr->slice_type == I_SLICE)
+                    referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + 3;
+                else
+                    referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount;
+#else
                 referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount;
+#endif
                 referenceEntryPtr->dependentCount = referenceEntryPtr->depList0Count + referenceEntryPtr->depList1Count;
 
                 CHECK_REPORT_ERROR(
@@ -766,7 +791,6 @@ void* PictureManagerKernel(void *input_ptr)
 
                                 // Decrement the Reference's dependentCount Count
                                 --referenceEntryPtr->dependentCount;
-
                                 CHECK_REPORT_ERROR(
                                     (referenceEntryPtr->dependentCount != ~0u),
                                     encode_context_ptr->app_callback_ptr,
@@ -800,7 +824,6 @@ void* PictureManagerKernel(void *input_ptr)
 
                                 // Decrement the Reference's dependentCount Count
                                 --referenceEntryPtr->dependentCount;
-
                                 CHECK_REPORT_ERROR(
                                     (referenceEntryPtr->dependentCount != ~0u),
                                     encode_context_ptr->app_callback_ptr,
