@@ -515,8 +515,8 @@ EbErrorType update_base_layer_reference_queue_dependent_count(
                 dependant_list_removed_entries = input_entry_ptr->depList0Count + input_entry_ptr->depList1Count - input_entry_ptr->dependentCount;
                 input_entry_ptr->depList0Count = input_entry_ptr->list0.listCount;
 #if BASE_LAYER_REF
-                if(picture_control_set_ptr->slice_type == I_SLICE)
-                    input_entry_ptr->depList1Count = input_entry_ptr->list1.listCount  + 3;
+                if (picture_control_set_ptr->slice_type == I_SLICE)
+                    input_entry_ptr->depList1Count = input_entry_ptr->list1.listCount + 5;// 3;
                 else
                     input_entry_ptr->depList1Count = input_entry_ptr->list1.listCount;
 #else
@@ -1056,6 +1056,9 @@ void  Av1GenerateRpsInfo(
         //            2          6
         //                 4
         //base0:0                      base1:8
+#if BASE_LAYER_REF
+        const uint8_t  iSlice_idx = 7;
+#endif
         const uint8_t  base0_idx = context_ptr->miniGopToggle ? 0 : 3; //Base layer for prediction from past
         const uint8_t  base1_idx = context_ptr->miniGopToggle ? 3 : 0; //Base layer for prediction from future
         const uint8_t  layer1_idx = 1;
@@ -1065,10 +1068,14 @@ void  Av1GenerateRpsInfo(
         switch (picture_control_set_ptr->temporal_layer_index) {
 
         case 0:
-
             av1Rps->refDpbIndex[0] = base0_idx;
+#if BASE_LAYER_REF
+            av1Rps->refDpbIndex[6] = iSlice_idx;
+            av1Rps->refreshFrameMask = context_ptr->miniGopToggle ? 8 : 1;
+#else
             av1Rps->refDpbIndex[6] = base0_idx;
             av1Rps->refreshFrameMask = context_ptr->miniGopToggle ? 248 : 1;
+#endif
             break;
         case 1:
             av1Rps->refDpbIndex[0] = base0_idx;
@@ -1239,7 +1246,7 @@ void  Av1GenerateRpsInfo(
 
         av1Rps->refDpbIndex[0] = base0_idx;
 #if BASE_LAYER_REF
-        if (1/*picture_control_set_ptr->picture_number == 48*/) {
+        if (0/*picture_control_set_ptr->picture_number == 48*/) {
             av1Rps->refDpbIndex[0] = iSlice_idx;
             av1Rps->refDpbIndex[6] = base0_idx;
         }
@@ -2050,14 +2057,22 @@ void* PictureDecisionKernel(void *input_ptr)
 
                                     picture_control_set_ptr->allow_comp_inter_inter = 1;
 #if BASE_LAYER_REF
-                                    if (picture_control_set_ptr->temporal_layer_index == 0)
+                                    if (picture_control_set_ptr->temporal_layer_index == 0) {
+                                        if (picture_control_set_ptr->picture_number == 16) // AMIR to fix
+                                            picture_control_set_ptr->is_skip_mode_allowed = 0;
+
+                                        else
+                                            picture_control_set_ptr->is_skip_mode_allowed = 1;
                                         picture_control_set_ptr->reference_mode = REFERENCE_MODE_SELECT;
-                                    else
+                                    }
+                                    else {
+                                        picture_control_set_ptr->is_skip_mode_allowed = 0;
                                         picture_control_set_ptr->reference_mode = SINGLE_REFERENCE;
+                                    }
 #else
                                     picture_control_set_ptr->reference_mode = SINGLE_REFERENCE;
-#endif
                                     picture_control_set_ptr->is_skip_mode_allowed = 0;
+#endif
                                     picture_control_set_ptr->skip_mode_flag = 0;
                                 }
                                 else {
@@ -2228,16 +2243,17 @@ void* PictureDecisionKernel(void *input_ptr)
                             picture_control_set_ptr->ref_list0_count = (pictureType == I_SLICE) ? 0 : (uint8_t)predPositionPtr->refList0.referenceListCount;
                             picture_control_set_ptr->ref_list1_count = (pictureType == I_SLICE) ? 0 : (uint8_t)predPositionPtr->refList1.referenceListCount;
 
+#if BASE_LAYER_REF
+                            inputEntryPtr->list0Ptr->referenceList       = predPositionPtr->refList0.referenceList;
+                            inputEntryPtr->list0Ptr->referenceListCount  = predPositionPtr->refList0.referenceListCount;
+                            inputEntryPtr->list1Ptr->referenceList       = predPositionPtr->refList1.referenceList;
+                            inputEntryPtr->list1Ptr->referenceListCount  = predPositionPtr->refList1.referenceListCount;
+                            if (picture_control_set_ptr->temporal_layer_index == 0 && (pictureType != I_SLICE)/*&& picture_control_set_ptr->picture_number ==16*/) {
+                                    inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
+                            }
+#else
                             inputEntryPtr->list0Ptr = &predPositionPtr->refList0;
                             inputEntryPtr->list1Ptr = &predPositionPtr->refList1;
-#if BASE_LAYER_REF
-                            if (picture_control_set_ptr->temporal_layer_index == 0 && (pictureType != I_SLICE)/*&& picture_control_set_ptr->picture_number ==16*/) {
-                                if (1 /*picture_control_set_ptr->picture_number == 48*/) 
-                                    inputEntryPtr->list0Ptr->referenceList = picture_control_set_ptr->picture_number;
-                                else
-                                    inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
-                               // inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
-                            }
 #endif
                             {
                                 // Copy the Dependent Lists
@@ -2257,7 +2273,7 @@ void* PictureDecisionKernel(void *input_ptr)
                                 inputEntryPtr->depList0Count = inputEntryPtr->list0.listCount;
 #if BASE_LAYER_REF
                                 if (picture_control_set_ptr->slice_type == I_SLICE)
-                                    inputEntryPtr->depList1Count = inputEntryPtr->list1.listCount + 3;
+                                    inputEntryPtr->depList1Count = inputEntryPtr->list1.listCount + 5;// 3;
                                 else
                                     inputEntryPtr->depList1Count = inputEntryPtr->list1.listCount;
 #else
@@ -2364,6 +2380,7 @@ void* PictureDecisionKernel(void *input_ptr)
                             if (picture_control_set_ptr->slice_type == B_SLICE) {
 
                                 if (picture_control_set_ptr->ref_list1_count) {
+
                                     paReferenceQueueIndex = (uint32_t)CIRCULAR_ADD(
                                         ((int32_t)inputEntryPtr->referenceEntryIndex) - inputEntryPtr->list1Ptr->referenceList,
                                         PICTURE_DECISION_PA_REFERENCE_QUEUE_MAX_DEPTH);                                                                                             // Max

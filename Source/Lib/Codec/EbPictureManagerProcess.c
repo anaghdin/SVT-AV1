@@ -253,7 +253,7 @@ void* PictureManagerKernel(void *input_ptr)
                             referenceEntryPtr->depList0Count = referenceEntryPtr->list0.listCount;
 #if BASE_LAYER_REF
                             if (picture_control_set_ptr->slice_type == I_SLICE)
-                                referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + 3;
+                                referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + 5;// 3;
                             else
                                 referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount;
 #else
@@ -420,17 +420,20 @@ void* PictureManagerKernel(void *input_ptr)
                 // set the Reference Counts Based on Temporal Layer and how many frames are active
                 picture_control_set_ptr->ref_list0_count = (picture_control_set_ptr->slice_type == I_SLICE) ? 0 : (uint8_t)predPositionPtr->refList0.referenceListCount;
                 picture_control_set_ptr->ref_list1_count = (picture_control_set_ptr->slice_type == I_SLICE) ? 0 : (uint8_t)predPositionPtr->refList1.referenceListCount;
-                inputEntryPtr->list0Ptr = &predPositionPtr->refList0;
-                inputEntryPtr->list1Ptr = &predPositionPtr->refList1;
 #if BASE_LAYER_REF
+                inputEntryPtr->list0Ptr->referenceList      = predPositionPtr->refList0.referenceList;
+                inputEntryPtr->list0Ptr->referenceListCount = predPositionPtr->refList0.referenceListCount;
+                inputEntryPtr->list1Ptr->referenceList      = predPositionPtr->refList1.referenceList;
+                inputEntryPtr->list1Ptr->referenceListCount = predPositionPtr->refList1.referenceListCount;
+
                 if (picture_control_set_ptr->temporal_layer_index == 0 && picture_control_set_ptr->slice_type != I_SLICE) {
-                    if (1/* picture_control_set_ptr->picture_number == 48*/)
-                        inputEntryPtr->list0Ptr->referenceList = picture_control_set_ptr->picture_number;
-                    else
                         inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
 
                 //    inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
                 }
+#else
+                inputEntryPtr->list0Ptr = &predPositionPtr->refList0;
+                inputEntryPtr->list1Ptr = &predPositionPtr->refList1;
 #endif
 
                 // Check if the ReferencePictureQueue is full.
@@ -467,7 +470,7 @@ void* PictureManagerKernel(void *input_ptr)
 
 #if BASE_LAYER_REF
                 if (picture_control_set_ptr->slice_type == I_SLICE)
-                    referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + 3;
+                    referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + 5;// 3;
                 else
                     referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount;
 #else

@@ -717,7 +717,6 @@ static void Av1EncodeLoop(
 
         txb_ptr->y_has_coeff = count_non_zero_coeffs[0] ? EB_TRUE : EB_FALSE;
 
-
 #if TX_TYPE_FIX
         if (count_non_zero_coeffs[0] == 0) {
             // INTER. Chroma follows Luma in transform type
@@ -955,7 +954,6 @@ static void Av1EncodeLoop(
             txb_ptr->transform_type[PLANE_TYPE_UV],
             cleanSparseCoeffFlag);
 
-
         txb_ptr->u_has_coeff = count_non_zero_coeffs[1] ? EB_TRUE : EB_FALSE;
 
         //**********************************
@@ -1006,6 +1004,7 @@ static void Av1EncodeLoop(
     txb_ptr->nz_coef_count[0] = (uint16_t)count_non_zero_coeffs[0];
     txb_ptr->nz_coef_count[1] = (uint16_t)count_non_zero_coeffs[1];
     txb_ptr->nz_coef_count[2] = (uint16_t)count_non_zero_coeffs[2];
+
     return;
 }
 

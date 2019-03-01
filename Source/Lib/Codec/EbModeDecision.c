@@ -629,7 +629,7 @@ void Unipred3x3CandidatesInjection(
     ModeDecisionCandidate_t    *candidateArray = context_ptr->fast_candidate_array;
     EbBool isCompoundEnabled = (picture_control_set_ptr->parent_pcs_ptr->reference_mode == SINGLE_REFERENCE) ? 0 : 1;
 
-#if BASE_LAYER_REF
+#if 0//BASE_LAYER_REF
     isCompoundEnabled = 0;
 #endif
     IntMv  bestPredmv[2] = { {0}, {0} };
@@ -771,9 +771,7 @@ void Bipred3x3CandidatesInjection(
     MeCuResults_t * mePuResult = &picture_control_set_ptr->parent_pcs_ptr->me_results[me_sb_addr][me2Nx2NTableOffset];
     ModeDecisionCandidate_t    *candidateArray = context_ptr->fast_candidate_array;
     EbBool isCompoundEnabled = (picture_control_set_ptr->parent_pcs_ptr->reference_mode == SINGLE_REFERENCE) ? 0 : 1;
-#if BASE_LAYER_REF
-    isCompoundEnabled = 0;
-#endif
+
     IntMv  bestPredmv[2] = { {0}, {0} };
 
     if (isCompoundEnabled) {
@@ -959,9 +957,10 @@ void InjectAv1MvpCandidates(
     uint32_t                   canIdx = *candTotCnt;
     ModeDecisionCandidate_t    *candidateArray = context_ptr->fast_candidate_array;
     EbBool isCompoundEnabled = (picture_control_set_ptr->parent_pcs_ptr->reference_mode == SINGLE_REFERENCE) ? 0 : 1;
+#if !ENABLE_COM_4
     isCompoundEnabled = (context_ptr->blk_geom->bwidth == 4 || context_ptr->blk_geom->bheight == 4) ? EB_FALSE : isCompoundEnabled;
-
-#if BASE_LAYER_REF
+#endif
+#if 0 //BASE_LAYER_REF
     isCompoundEnabled = 0;
 #endif
 
@@ -1100,32 +1099,36 @@ void InjectAv1MvpCandidates(
             candidateArray[canIdx].transform_type[PLANE_TYPE_UV] = DCT_DCT;
             ++canIdx;
         }
-
-        //SKIP (NEAREST_NEAREST with LAST_BWD_FRAME)
-        candidateArray[canIdx].type = INTER_MODE;
-        candidateArray[canIdx].inter_mode = NEAREST_NEARESTMV;
-        candidateArray[canIdx].pred_mode = NEAREST_NEARESTMV;
-        candidateArray[canIdx].motion_mode = SIMPLE_TRANSLATION;
-        candidateArray[canIdx].is_compound = 1;
-        candidateArray[canIdx].distortion_ready = 0;
-        candidateArray[canIdx].merge_flag = EB_TRUE;
-        candidateArray[canIdx].merge_index = 0;
-        candidateArray[canIdx].mpm_flag = EB_FALSE;
-        candidateArray[canIdx].prediction_direction[0] = BI_PRED;
-        candidateArray[canIdx].is_skip_mode_flag = 0;
-        candidateArray[canIdx].is_new_mv = 0;
-        candidateArray[canIdx].is_zero_mv = 0;
-        candidateArray[canIdx].motionVector_x_L0 = context_ptr->md_local_cu_unit[context_ptr->blk_geom->blkidx_mds].ed_ref_mv_stack[LAST_BWD_FRAME][0].this_mv.as_mv.col;
-        candidateArray[canIdx].motionVector_y_L0 = context_ptr->md_local_cu_unit[context_ptr->blk_geom->blkidx_mds].ed_ref_mv_stack[LAST_BWD_FRAME][0].this_mv.as_mv.row;
-        candidateArray[canIdx].motionVector_x_L1 = context_ptr->md_local_cu_unit[context_ptr->blk_geom->blkidx_mds].ed_ref_mv_stack[LAST_BWD_FRAME][0].comp_mv.as_mv.col;
-        candidateArray[canIdx].motionVector_y_L1 = context_ptr->md_local_cu_unit[context_ptr->blk_geom->blkidx_mds].ed_ref_mv_stack[LAST_BWD_FRAME][0].comp_mv.as_mv.row;
-        candidateArray[canIdx].drl_index = 0;
-        candidateArray[canIdx].ref_mv_index = 0;
-        candidateArray[canIdx].pred_mv_weight = 0;
-        candidateArray[canIdx].ref_frame_type = LAST_BWD_FRAME;
-        candidateArray[canIdx].transform_type[PLANE_TYPE_Y] = DCT_DCT;
-        candidateArray[canIdx].transform_type[PLANE_TYPE_UV] = DCT_DCT;
-        ++canIdx;
+#if BASE_LAYER_REF
+        if (allow_bipred)
+#endif
+        {
+            //SKIP (NEAREST_NEAREST with LAST_BWD_FRAME)
+            candidateArray[canIdx].type = INTER_MODE;
+            candidateArray[canIdx].inter_mode = NEAREST_NEARESTMV;
+            candidateArray[canIdx].pred_mode = NEAREST_NEARESTMV;
+            candidateArray[canIdx].motion_mode = SIMPLE_TRANSLATION;
+            candidateArray[canIdx].is_compound = 1;
+            candidateArray[canIdx].distortion_ready = 0;
+            candidateArray[canIdx].merge_flag = EB_TRUE;
+            candidateArray[canIdx].merge_index = 0;
+            candidateArray[canIdx].mpm_flag = EB_FALSE;
+            candidateArray[canIdx].prediction_direction[0] = BI_PRED;
+            candidateArray[canIdx].is_skip_mode_flag = 0;
+            candidateArray[canIdx].is_new_mv = 0;
+            candidateArray[canIdx].is_zero_mv = 0;
+            candidateArray[canIdx].motionVector_x_L0 = context_ptr->md_local_cu_unit[context_ptr->blk_geom->blkidx_mds].ed_ref_mv_stack[LAST_BWD_FRAME][0].this_mv.as_mv.col;
+            candidateArray[canIdx].motionVector_y_L0 = context_ptr->md_local_cu_unit[context_ptr->blk_geom->blkidx_mds].ed_ref_mv_stack[LAST_BWD_FRAME][0].this_mv.as_mv.row;
+            candidateArray[canIdx].motionVector_x_L1 = context_ptr->md_local_cu_unit[context_ptr->blk_geom->blkidx_mds].ed_ref_mv_stack[LAST_BWD_FRAME][0].comp_mv.as_mv.col;
+            candidateArray[canIdx].motionVector_y_L1 = context_ptr->md_local_cu_unit[context_ptr->blk_geom->blkidx_mds].ed_ref_mv_stack[LAST_BWD_FRAME][0].comp_mv.as_mv.row;
+            candidateArray[canIdx].drl_index = 0;
+            candidateArray[canIdx].ref_mv_index = 0;
+            candidateArray[canIdx].pred_mv_weight = 0;
+            candidateArray[canIdx].ref_frame_type = LAST_BWD_FRAME;
+            candidateArray[canIdx].transform_type[PLANE_TYPE_Y] = DCT_DCT;
+            candidateArray[canIdx].transform_type[PLANE_TYPE_UV] = DCT_DCT;
+            ++canIdx;
+        }
         //NEAR_NEAR
         if (allow_bipred) {
 
@@ -1495,10 +1498,6 @@ void  inject_inter_candidates(
     /**************
          MVP
     ************* */
-#if BASE_LAYER_REF
-
-    if (picture_control_set_ptr->parent_pcs_ptr->temporal_layer_index) 
-#endif
     InjectAv1MvpCandidates(
         context_ptr,
         context_ptr->cu_ptr,
@@ -1748,62 +1747,6 @@ void  inject_inter_candidates(
 
             ++canTotalCnt;
 
-#if 0//BASE_LAYER_REF
-
-            candidateArray[canTotalCnt].type = INTER_MODE;
-            candidateArray[canTotalCnt].distortion_ready = 0;
-            candidateArray[canTotalCnt].merge_flag = EB_FALSE;
-            candidateArray[canTotalCnt].merge_index = 0;
-            candidateArray[canTotalCnt].mpm_flag = EB_FALSE;
-            candidateArray[canTotalCnt].prediction_direction[0] = (EbPredDirection)0;
-
-            candidateArray[canTotalCnt].is_skip_mode_flag = 0;
-            candidateArray[canTotalCnt].inter_mode = NEWMV;
-            candidateArray[canTotalCnt].pred_mode = NEWMV;
-            candidateArray[canTotalCnt].motion_mode = SIMPLE_TRANSLATION;
-
-            candidateArray[canTotalCnt].is_compound = 0;
-            candidateArray[canTotalCnt].is_new_mv = 1;
-            candidateArray[canTotalCnt].is_zero_mv = 0;
-
-            candidateArray[canTotalCnt].drl_index = 0;
-
-            // Set the MV to ME result
-            candidateArray[canTotalCnt].motionVector_x_L0 = use_close_loop_me ? ss_mecontext->inloop_me_mv[0][0][close_loop_me_index][0] << 1 : mePuResult->xMvL0 << 1;
-            candidateArray[canTotalCnt].motionVector_y_L0 = use_close_loop_me ? ss_mecontext->inloop_me_mv[0][0][close_loop_me_index][1] << 1 : mePuResult->yMvL0 << 1;
-
-            // will be needed later by the rate estimation
-            candidateArray[canTotalCnt].ref_mv_index = 0;
-            candidateArray[canTotalCnt].pred_mv_weight = 0;
-#if BASE_LAYER_REF
-            candidateArray[canTotalCnt].ref_frame_type = BWDREF_FRAME;
-#else
-            candidateArray[canTotalCnt].ref_frame_type = LAST_FRAME;
-
-#endif
-
-
-            candidateArray[canTotalCnt].transform_type[PLANE_TYPE_Y] = DCT_DCT;
-            candidateArray[canTotalCnt].transform_type[PLANE_TYPE_UV] = DCT_DCT;
-
-            ChooseBestAv1MvPred(
-                context_ptr,
-                candidateArray[canTotalCnt].md_rate_estimation_ptr,
-                context_ptr->cu_ptr,
-                candidateArray[canTotalCnt].ref_frame_type,
-                candidateArray[canTotalCnt].is_compound,
-                candidateArray[canTotalCnt].pred_mode,
-                candidateArray[canTotalCnt].motionVector_x_L0,
-                candidateArray[canTotalCnt].motionVector_y_L0,
-                0, 0,
-                &candidateArray[canTotalCnt].drl_index,
-                bestPredmv);
-
-            candidateArray[canTotalCnt].motion_vector_pred_x[REF_LIST_0] = bestPredmv[0].as_mv.col;
-            candidateArray[canTotalCnt].motion_vector_pred_y[REF_LIST_0] = bestPredmv[0].as_mv.row;
-
-            ++canTotalCnt;
-#endif
         }
 
 #endif
@@ -1907,35 +1850,42 @@ void  inject_inter_candidates(
 #if NSQ_SEARCH_LEVELS
     if (inject_newmv_candidate) {
 #endif
+#if ENABLE_COM_4
+        if (isCompoundEnabled) {
+            if (allow_bipred) {
+#else
         if (allow_bipred) {
-
-#if IMPROVED_BIPRED_INJECTION
-            //----------------------
-            // Bipred2Nx2N
-            //----------------------
-#if ENCODER_MODE_CLEANUP
-#if TUNED_SETTINGS_FOR_M1
-            if (picture_control_set_ptr->enc_mode == ENC_M0 || context_ptr->blk_geom->shape == PART_N)
-#else
-            if (picture_control_set_ptr->enc_mode <= ENC_M0)
 #endif
 
-#else
-            if (picture_control_set_ptr->enc_mode <= ENC_M1 /*&& sequence_control_set_ptr->static_config.tune != TUNE_VQ*/)
-#endif
-                if (picture_control_set_ptr->slice_type == B_SLICE)
-                    Bipred3x3CandidatesInjection(
-                        picture_control_set_ptr,
-                        context_ptr,
-                        sb_ptr,
-                        me_sb_addr,
-                        ss_mecontext,
-                        use_close_loop_me,
-                        close_loop_me_index,
-                        me2Nx2NTableOffset,
-                        &canTotalCnt);
-#endif
+    #if IMPROVED_BIPRED_INJECTION
+                //----------------------
+                // Bipred2Nx2N
+                //----------------------
+    #if ENCODER_MODE_CLEANUP
+    #if TUNED_SETTINGS_FOR_M1
+                if (picture_control_set_ptr->enc_mode == ENC_M0 || context_ptr->blk_geom->shape == PART_N)
+    #else
+                if (picture_control_set_ptr->enc_mode <= ENC_M0)
+    #endif
 
+    #else
+                if (picture_control_set_ptr->enc_mode <= ENC_M1 /*&& sequence_control_set_ptr->static_config.tune != TUNE_VQ*/)
+    #endif
+                    if (picture_control_set_ptr->slice_type == B_SLICE)
+                        Bipred3x3CandidatesInjection(
+                            picture_control_set_ptr,
+                            context_ptr,
+                            sb_ptr,
+                            me_sb_addr,
+                            ss_mecontext,
+                            use_close_loop_me,
+                            close_loop_me_index,
+                            me2Nx2NTableOffset,
+                            &canTotalCnt);
+#endif
+#if ENABLE_COM_4
+            }
+#endif
 #if IMPROVED_UNIPRED_INJECTION
             //----------------------
             // Unipred2Nx2N
@@ -2327,10 +2277,6 @@ EbErrorType ProductGenerateMdCandidatesCu(
 #endif
 #if NSQ_SEARCH_LEVELS
             if (inject_intra_candidate)
-#endif
-#if 0//BASE_LAYER_REF
-
-            if (picture_control_set_ptr->parent_pcs_ptr->temporal_layer_index || context_ptr->blk_geom->bwidth == 4 || picture_control_set_ptr->parent_pcs_ptr->slice_type == I_SLICE)
 #endif
             inject_intra_candidates(
                 picture_control_set_ptr,
