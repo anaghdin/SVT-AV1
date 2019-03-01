@@ -1255,11 +1255,6 @@ EbErrorType Av1InterFastCost(
         }
 
     }
-#if 0//BASE_LAYER_REF
-    if (picture_control_set_ptr->temporal_layer_index == 0 && candidate_buffer_ptr->candidate_ptr->ref_frame_type == BWDREF_FRAME)
-        *(candidate_buffer_ptr->fast_cost_ptr) = 0;
-
-#endif
 
     return return_error;
 }

@@ -629,9 +629,6 @@ void Unipred3x3CandidatesInjection(
     ModeDecisionCandidate_t    *candidateArray = context_ptr->fast_candidate_array;
     EbBool isCompoundEnabled = (picture_control_set_ptr->parent_pcs_ptr->reference_mode == SINGLE_REFERENCE) ? 0 : 1;
 
-#if 0//BASE_LAYER_REF
-    isCompoundEnabled = 0;
-#endif
     IntMv  bestPredmv[2] = { {0}, {0} };
 
     // (8 Best_L0 neighbors)
@@ -960,9 +957,7 @@ void InjectAv1MvpCandidates(
 #if !ENABLE_COM_4
     isCompoundEnabled = (context_ptr->blk_geom->bwidth == 4 || context_ptr->blk_geom->bheight == 4) ? EB_FALSE : isCompoundEnabled;
 #endif
-#if 0 //BASE_LAYER_REF
-    isCompoundEnabled = 0;
-#endif
+
 
     MacroBlockD  *xd = cu_ptr->av1xd;
     uint8_t drli, maxDrlIndex;
@@ -1384,9 +1379,7 @@ void  inject_inter_candidates(
     ModeDecisionCandidate_t    *candidateArray = context_ptr->fast_candidate_array;
     static MvReferenceFrame refFrames[] = { LAST_FRAME, BWDREF_FRAME, LAST_BWD_FRAME };
     EbBool isCompoundEnabled = (picture_control_set_ptr->parent_pcs_ptr->reference_mode == SINGLE_REFERENCE) ? 0 : 1;
-#if BASE_LAYER_REF
-    //isCompoundEnabled = 0;
-#endif
+
     uint32_t me_sb_addr;
     uint32_t geom_offset_x = 0;
     uint32_t geom_offset_y = 0;
@@ -1479,11 +1472,7 @@ void  inject_inter_candidates(
         context_ptr->cu_origin_x,
         context_ptr->cu_origin_y,
         refFrames,
-#if 0//BASE_LAYER_REF
-        picture_control_set_ptr->parent_pcs_ptr->temporal_layer_index == 0 ? 2 :  (picture_control_set_ptr->parent_pcs_ptr->reference_mode == SINGLE_REFERENCE) ? 1 : 3,
-#else
         (picture_control_set_ptr->parent_pcs_ptr->reference_mode == SINGLE_REFERENCE) ? 1 : 3,
-#endif
         picture_control_set_ptr);
 
     uint32_t mi_row = context_ptr->cu_origin_y >> MI_SIZE_LOG2;
@@ -1675,7 +1664,6 @@ void  inject_inter_candidates(
                 ++canTotalCnt;
 
             }
-
         }
 #if 0 //M0_ME_SEARCH_BASE
         /**************

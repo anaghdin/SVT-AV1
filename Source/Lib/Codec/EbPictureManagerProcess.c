@@ -427,9 +427,7 @@ void* PictureManagerKernel(void *input_ptr)
                 inputEntryPtr->list1Ptr->referenceListCount = predPositionPtr->refList1.referenceListCount;
 
                 if (picture_control_set_ptr->temporal_layer_index == 0 && picture_control_set_ptr->slice_type != I_SLICE) {
-                        inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
-
-                //    inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
+                    inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
                 }
 #else
                 inputEntryPtr->list0Ptr = &predPositionPtr->refList0;

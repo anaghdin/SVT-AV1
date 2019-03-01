@@ -1246,14 +1246,7 @@ void  Av1GenerateRpsInfo(
 
         av1Rps->refDpbIndex[0] = base0_idx;
 #if BASE_LAYER_REF
-        if (0/*picture_control_set_ptr->picture_number == 48*/) {
-            av1Rps->refDpbIndex[0] = iSlice_idx;
-            av1Rps->refDpbIndex[6] = base0_idx;
-        }
-        else {
-            av1Rps->refDpbIndex[6] = iSlice_idx;
-        }
-        ///av1Rps->refDpbIndex[6] = iSlice_idx;
+        av1Rps->refDpbIndex[6] = iSlice_idx;
         av1Rps->refreshFrameMask = context_ptr->miniGopToggle ? 8 : 1;
 #else
         av1Rps->refDpbIndex[6] = base0_idx;
@@ -2248,7 +2241,7 @@ void* PictureDecisionKernel(void *input_ptr)
                             inputEntryPtr->list0Ptr->referenceListCount  = predPositionPtr->refList0.referenceListCount;
                             inputEntryPtr->list1Ptr->referenceList       = predPositionPtr->refList1.referenceList;
                             inputEntryPtr->list1Ptr->referenceListCount  = predPositionPtr->refList1.referenceListCount;
-                            if (picture_control_set_ptr->temporal_layer_index == 0 && (pictureType != I_SLICE)/*&& picture_control_set_ptr->picture_number ==16*/) {
+                            if (picture_control_set_ptr->temporal_layer_index == 0 && (pictureType != I_SLICE)) {
                                     inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
                             }
 #else

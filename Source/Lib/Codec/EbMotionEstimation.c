@@ -6294,7 +6294,7 @@ EbErrorType MotionEstimateLcu(
             quarterRefPicPtr = (EbPictureBufferDesc_t*)referenceObject->quarterDecimatedPicturePtr;
             sixteenthRefPicPtr = (EbPictureBufferDesc_t*)referenceObject->sixteenthDecimatedPicturePtr;
 #if BASE_LAYER_REF
-            if (1) {
+            if (picture_control_set_ptr->temporal_layer_index > 0 || listIndex == 0 || ((ref0Poc != ref1Poc) && (listIndex == 1))) {
 #else
             if (picture_control_set_ptr->temporal_layer_index > 0 || listIndex == 0) {
 #endif
@@ -6316,6 +6316,7 @@ EbErrorType MotionEstimateLcu(
                     xSearchCenter = 0;
                     ySearchCenter = 0;
                 }
+
                 // B - NO HME in boundaries
                 // C - Skip HME
 
