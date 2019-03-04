@@ -516,7 +516,7 @@ EbErrorType update_base_layer_reference_queue_dependent_count(
                 input_entry_ptr->depList0Count = input_entry_ptr->list0.listCount;
 #if BASE_LAYER_REF
                 if (picture_control_set_ptr->slice_type == I_SLICE)
-                    input_entry_ptr->depList1Count = input_entry_ptr->list1.listCount + 5;// 3;
+                    input_entry_ptr->depList1Count = input_entry_ptr->list1.listCount + 10;// 3;
                 else
                     input_entry_ptr->depList1Count = input_entry_ptr->list1.listCount;
 #else
@@ -2045,27 +2045,35 @@ void* PictureDecisionKernel(void *input_ptr)
                             picture_control_set_ptr->reference_mode = (ReferenceMode)0xFF;
 
                             if (picture_control_set_ptr->slice_type != I_SLICE) {
+#if BASE_LAYER_REF
+                                picture_control_set_ptr->allow_comp_inter_inter = 1;
+                                if (picture_control_set_ptr->slice_type == P_SLICE) {
+                                    picture_control_set_ptr->is_skip_mode_allowed   = 0;
+                                    picture_control_set_ptr->reference_mode         = SINGLE_REFERENCE;
+                                    picture_control_set_ptr->skip_mode_flag         = 0;
+                                }
+                                else if (picture_control_set_ptr->temporal_layer_index == 0) {
+                                    if (picture_control_set_ptr->ref_pic_poc_array[0] == picture_control_set_ptr->ref_pic_poc_array[1]) 
+                                        picture_control_set_ptr->is_skip_mode_allowed = 0;
+                                    else
+                                        picture_control_set_ptr->is_skip_mode_allowed = 1;
+                                    
+                                    picture_control_set_ptr->reference_mode         = REFERENCE_MODE_SELECT;
+                                    picture_control_set_ptr->skip_mode_flag         = 0;
+                                }
+                                else {
+
+                                    picture_control_set_ptr->reference_mode         = REFERENCE_MODE_SELECT;
+                                    picture_control_set_ptr->is_skip_mode_allowed   = 1;
+                                    picture_control_set_ptr->skip_mode_flag         = 1;
+                                }
+#else
 
                                 if (picture_control_set_ptr->temporal_layer_index == 0 || picture_control_set_ptr->slice_type == P_SLICE) {
 
                                     picture_control_set_ptr->allow_comp_inter_inter = 1;
-#if BASE_LAYER_REF
-                                    if (picture_control_set_ptr->temporal_layer_index == 0) {
-                                        if (picture_control_set_ptr->picture_number == 16) // AMIR to fix
-                                            picture_control_set_ptr->is_skip_mode_allowed = 0;
-
-                                        else
-                                            picture_control_set_ptr->is_skip_mode_allowed = 1;
-                                        picture_control_set_ptr->reference_mode = REFERENCE_MODE_SELECT;
-                                    }
-                                    else {
-                                        picture_control_set_ptr->is_skip_mode_allowed = 0;
-                                        picture_control_set_ptr->reference_mode = SINGLE_REFERENCE;
-                                    }
-#else
                                     picture_control_set_ptr->reference_mode = SINGLE_REFERENCE;
                                     picture_control_set_ptr->is_skip_mode_allowed = 0;
-#endif
                                     picture_control_set_ptr->skip_mode_flag = 0;
                                 }
                                 else {
@@ -2074,17 +2082,20 @@ void* PictureDecisionKernel(void *input_ptr)
                                     picture_control_set_ptr->is_skip_mode_allowed = 1;
                                     picture_control_set_ptr->skip_mode_flag = 1;
                                 }
+#endif
                             }
 
                             picture_control_set_ptr->av1_cm->mi_cols = picture_control_set_ptr->sequence_control_set_ptr->luma_width >> MI_SIZE_LOG2;
                             picture_control_set_ptr->av1_cm->mi_rows = picture_control_set_ptr->sequence_control_set_ptr->luma_height >> MI_SIZE_LOG2;
 
                             memset(picture_control_set_ptr->av1_cm->ref_frame_sign_bias, 0, 8 * sizeof(int32_t));
-                            if (picture_control_set_ptr->reference_mode == REFERENCE_MODE_SELECT)
-                            {
 #if BASE_LAYER_REF
-                                if (picture_control_set_ptr->temporal_layer_index)
+                            if (picture_control_set_ptr->reference_mode == REFERENCE_MODE_SELECT && picture_control_set_ptr->temporal_layer_index)
+#else
+                            if (picture_control_set_ptr->reference_mode == REFERENCE_MODE_SELECT)
 #endif
+                            {
+
                                 picture_control_set_ptr->av1_cm->ref_frame_sign_bias[ALTREF_FRAME] =
                                     picture_control_set_ptr->av1_cm->ref_frame_sign_bias[ALTREF2_FRAME] =
                                     picture_control_set_ptr->av1_cm->ref_frame_sign_bias[BWDREF_FRAME] = 1;
@@ -2238,12 +2249,12 @@ void* PictureDecisionKernel(void *input_ptr)
 
 #if BASE_LAYER_REF
                             inputEntryPtr->list0Ptr->referenceList       = predPositionPtr->refList0.referenceList;
-                            inputEntryPtr->list0Ptr->referenceListCount  = predPositionPtr->refList0.referenceListCount;
-                            inputEntryPtr->list1Ptr->referenceList       = predPositionPtr->refList1.referenceList;
-                            inputEntryPtr->list1Ptr->referenceListCount  = predPositionPtr->refList1.referenceListCount;
-                            if (picture_control_set_ptr->temporal_layer_index == 0 && (pictureType != I_SLICE)) {
-                                    inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
-                            }
+                            inputEntryPtr->list0Ptr->referenceListCount  = predPositionPtr->refList0.referenceListCount;                           
+                            if (picture_control_set_ptr->temporal_layer_index == 0 && (pictureType != I_SLICE)) 
+                                inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
+                            else 
+                                inputEntryPtr->list1Ptr->referenceList = predPositionPtr->refList1.referenceList;
+                            inputEntryPtr->list1Ptr->referenceListCount = predPositionPtr->refList1.referenceListCount;
 #else
                             inputEntryPtr->list0Ptr = &predPositionPtr->refList0;
                             inputEntryPtr->list1Ptr = &predPositionPtr->refList1;
@@ -2266,7 +2277,7 @@ void* PictureDecisionKernel(void *input_ptr)
                                 inputEntryPtr->depList0Count = inputEntryPtr->list0.listCount;
 #if BASE_LAYER_REF
                                 if (picture_control_set_ptr->slice_type == I_SLICE)
-                                    inputEntryPtr->depList1Count = inputEntryPtr->list1.listCount + 5;// 3;
+                                    inputEntryPtr->depList1Count = inputEntryPtr->list1.listCount + 10;// 3;
                                 else
                                     inputEntryPtr->depList1Count = inputEntryPtr->list1.listCount;
 #else
@@ -2404,7 +2415,15 @@ void* PictureDecisionKernel(void *input_ptr)
                                     --paReferenceEntryPtr->dependentCount;
                                 }
                             }
-
+#if BASE_LAYER_REF
+                            if (picture_control_set_ptr->temporal_layer_index == 0) {
+                                if (picture_control_set_ptr->ref_pic_poc_array[0] == picture_control_set_ptr->ref_pic_poc_array[1])
+                                    picture_control_set_ptr->is_skip_mode_allowed = 0;
+                                else
+                                    picture_control_set_ptr->is_skip_mode_allowed = 1;
+                            }
+                           
+#endif
                             // SB Loop to reset similarColocatedLcu Array
                             uint16_t *variancePtr;
                             uint32_t  NullVarCnt = 0;

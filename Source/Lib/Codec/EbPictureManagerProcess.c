@@ -253,7 +253,7 @@ void* PictureManagerKernel(void *input_ptr)
                             referenceEntryPtr->depList0Count = referenceEntryPtr->list0.listCount;
 #if BASE_LAYER_REF
                             if (picture_control_set_ptr->slice_type == I_SLICE)
-                                referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + 5;// 3;
+                                referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + 10;// 3;
                             else
                                 referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount;
 #else
@@ -423,12 +423,12 @@ void* PictureManagerKernel(void *input_ptr)
 #if BASE_LAYER_REF
                 inputEntryPtr->list0Ptr->referenceList      = predPositionPtr->refList0.referenceList;
                 inputEntryPtr->list0Ptr->referenceListCount = predPositionPtr->refList0.referenceListCount;
-                inputEntryPtr->list1Ptr->referenceList      = predPositionPtr->refList1.referenceList;
-                inputEntryPtr->list1Ptr->referenceListCount = predPositionPtr->refList1.referenceListCount;
 
-                if (picture_control_set_ptr->temporal_layer_index == 0 && picture_control_set_ptr->slice_type != I_SLICE) {
+                if (picture_control_set_ptr->temporal_layer_index == 0 && picture_control_set_ptr->slice_type != I_SLICE) 
                     inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
-                }
+                else
+                    inputEntryPtr->list1Ptr->referenceList      = predPositionPtr->refList1.referenceList;
+                inputEntryPtr->list1Ptr->referenceListCount = predPositionPtr->refList1.referenceListCount;
 #else
                 inputEntryPtr->list0Ptr = &predPositionPtr->refList0;
                 inputEntryPtr->list1Ptr = &predPositionPtr->refList1;
@@ -468,7 +468,7 @@ void* PictureManagerKernel(void *input_ptr)
 
 #if BASE_LAYER_REF
                 if (picture_control_set_ptr->slice_type == I_SLICE)
-                    referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + 5;// 3;
+                    referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + 10;// 3;
                 else
                     referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount;
 #else

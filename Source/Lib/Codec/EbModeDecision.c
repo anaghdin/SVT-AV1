@@ -954,7 +954,7 @@ void InjectAv1MvpCandidates(
     uint32_t                   canIdx = *candTotCnt;
     ModeDecisionCandidate_t    *candidateArray = context_ptr->fast_candidate_array;
     EbBool isCompoundEnabled = (picture_control_set_ptr->parent_pcs_ptr->reference_mode == SINGLE_REFERENCE) ? 0 : 1;
-#if !ENABLE_COM_4
+#if !BASE_LAYER_REF
     isCompoundEnabled = (context_ptr->blk_geom->bwidth == 4 || context_ptr->blk_geom->bheight == 4) ? EB_FALSE : isCompoundEnabled;
 #endif
 
@@ -1838,7 +1838,7 @@ void  inject_inter_candidates(
 #if NSQ_SEARCH_LEVELS
     if (inject_newmv_candidate) {
 #endif
-#if ENABLE_COM_4
+#if BASE_LAYER_REF
         if (isCompoundEnabled) {
             if (allow_bipred) {
 #else
@@ -1871,7 +1871,7 @@ void  inject_inter_candidates(
                             me2Nx2NTableOffset,
                             &canTotalCnt);
 #endif
-#if ENABLE_COM_4
+#if BASE_LAYER_REF
             }
 #endif
 #if IMPROVED_UNIPRED_INJECTION
