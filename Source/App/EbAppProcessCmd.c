@@ -435,7 +435,7 @@ void LogErrorOutput(
         break;
 
     case EB_ENC_PM_ERROR10:
-        fprintf(errorLogFile, "Error: PictureManagerKernel: referenceEntryPtr should never be null!\n");
+        fprintf(errorLogFile, "Error: picture_manager_kernel: referenceEntryPtr should never be null!\n");
         break;
 
     case EB_ENC_PM_ERROR2:
@@ -543,7 +543,7 @@ void LogErrorOutput(
         break;
 
     case EB_ENC_RD_COST_ERROR3:
-        fprintf(errorLogFile, "Error: Intra2Nx2NFastCostIslice can only support 2Nx2N partition type!\n");
+        fprintf(errorLogFile, "Error: intra2_nx2_n_fast_cost_islice can only support 2Nx2N partition type!\n");
         break;
 
         // EB_ENC_SAO_ERRORS:
@@ -1295,10 +1295,18 @@ static void write_ivf_stream_header(EbConfig_t *config)
     mem_put_le32(header + 8, AV1_FOURCC);                // fourcc
     mem_put_le16(header + 12, config->inputPaddedWidth);  // width
     mem_put_le16(header + 14, config->inputPaddedHeight); // height
-    mem_put_le32(header + 16, (config->frameRate >> 16) * 1000);  // rate
-    mem_put_le32(header + 20, 1001);            // scale
-                                                //mem_put_le32(header + 16, config->frameRateDenominator);  // rate
-                                                //mem_put_le32(header + 20, config->frameRateNumerator);  // scale
+    if (config->frameRateDenominator != 0 && config->frameRateNumerator != 0){
+        mem_put_le32(header + 16, config->frameRateNumerator);  // rate
+        mem_put_le32(header + 20, config->frameRateDenominator);            // scale
+                                                    //mem_put_le32(header + 16, config->frameRateDenominator);  // rate
+                                                    //mem_put_le32(header + 20, config->frameRateNumerator);  // scale
+    }
+    else {
+        mem_put_le32(header + 16, (config->frameRate >> 16) * 1000);  // rate
+        mem_put_le32(header + 20, 1000);            // scale
+                                                    //mem_put_le32(header + 16, config->frameRateDenominator);  // rate
+                                                    //mem_put_le32(header + 20, config->frameRateNumerator);  // scale
+    }
     mem_put_le32(header + 24, 0);               // length
     mem_put_le32(header + 28, 0);               // unused
     //config->performanceContext.byteCount += 32;
@@ -1499,7 +1507,7 @@ APPEXITCONDITIONTYPE ProcessOutputReconBuffer(
     EbConfig_t             *config,
     EbAppContext_t         *appCallBack)
 {
-    EbBufferHeaderType    *headerPtr = appCallBack->reconBuffer; // needs to change for buffered input
+    EbBufferHeaderType    *headerPtr = appCallBack->recon_buffer; // needs to change for buffered input
     EbComponentType       *componentHandle = (EbComponentType*)appCallBack->svtEncoderHandle;
     APPEXITCONDITIONTYPE    return_value = APP_ExitConditionNone;
     EbErrorType            recon_status = EB_ErrorNone;
