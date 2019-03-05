@@ -34,6 +34,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#define ALR_REF_DENOISE 1
 
      //Mode definition : Only one mode should be ON at a time
 
