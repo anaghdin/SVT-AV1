@@ -1098,8 +1098,10 @@ void  Av1GenerateRpsInfo(
         case 0:
             av1Rps->refDpbIndex[0] = base0_idx;
 #if BASE_LAYER_REF
-            av1Rps->refDpbIndex[6] = iSlice_idx;
-            //av1Rps->refreshFrameMask = context_ptr->miniGopToggle ? 8 : 1;
+            if(picture_control_set_ptr->picture_number < picture_control_set_ptr->sequence_control_set_ptr->max_frame_window_to_ref_islice + picture_control_set_ptr->last_islice_picture_number)
+                av1Rps->refDpbIndex[6] = iSlice_idx;
+            else
+                av1Rps->refDpbIndex[6] = base0_idx;
             av1Rps->refreshFrameMask = picture_control_set_ptr->slice_type == I_SLICE ? (context_ptr->miniGopToggle ? (128 + 8) : (128 + 1)) : (context_ptr->miniGopToggle ? 8 : 1);
 #else
             av1Rps->refDpbIndex[6] = base0_idx;
@@ -1275,8 +1277,10 @@ void  Av1GenerateRpsInfo(
 
         av1Rps->refDpbIndex[0] = base0_idx;
 #if BASE_LAYER_REF
-        av1Rps->refDpbIndex[6] = iSlice_idx;
-        //av1Rps->refreshFrameMask = context_ptr->miniGopToggle ? 8 : 1;
+        if (picture_control_set_ptr->picture_number < picture_control_set_ptr->sequence_control_set_ptr->max_frame_window_to_ref_islice + picture_control_set_ptr->last_islice_picture_number)
+            av1Rps->refDpbIndex[6] = iSlice_idx;
+        else
+            av1Rps->refDpbIndex[6] = base0_idx;
         av1Rps->refreshFrameMask = picture_control_set_ptr->slice_type == I_SLICE ? (context_ptr->miniGopToggle ? (128+8) : (128+1)) : (context_ptr->miniGopToggle ? 8 : 1);
 
 #else
