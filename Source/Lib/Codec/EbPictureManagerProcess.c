@@ -251,9 +251,10 @@ void* PictureManagerKernel(void *input_ptr)
                             dependant_list_removed_entries = referenceEntryPtr->depList0Count + referenceEntryPtr->depList1Count - referenceEntryPtr->dependentCount;
 
                             referenceEntryPtr->depList0Count = referenceEntryPtr->list0.listCount;
+
 #if BASE_LAYER_REF
-                            if (picture_control_set_ptr->slice_type == I_SLICE)
-                                referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + 10;// 3;
+                            if (referenceEntryPtr->slice_type == I_SLICE)
+                                referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + sequence_control_set_ptr->extra_frames_to_ref_islice;
                             else
                                 referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount;
 #else
@@ -423,11 +424,11 @@ void* PictureManagerKernel(void *input_ptr)
 #if BASE_LAYER_REF
                 inputEntryPtr->list0Ptr->referenceList      = predPositionPtr->refList0.referenceList;
                 inputEntryPtr->list0Ptr->referenceListCount = predPositionPtr->refList0.referenceListCount;
-
-                if (picture_control_set_ptr->temporal_layer_index == 0 && picture_control_set_ptr->slice_type != I_SLICE) 
-                    inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number;
+               
+                if (picture_control_set_ptr->temporal_layer_index == 0 && picture_control_set_ptr->slice_type != I_SLICE && picture_control_set_ptr->picture_number < sequence_control_set_ptr->max_frame_window_to_ref_islice +picture_control_set_ptr->last_islice_picture_number)
+                    inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number - picture_control_set_ptr->last_islice_picture_number;
                 else
-                    inputEntryPtr->list1Ptr->referenceList      = predPositionPtr->refList1.referenceList;
+                    inputEntryPtr->list1Ptr->referenceList  = predPositionPtr->refList1.referenceList;
                 inputEntryPtr->list1Ptr->referenceListCount = predPositionPtr->refList1.referenceListCount;
 #else
                 inputEntryPtr->list0Ptr = &predPositionPtr->refList0;
@@ -443,6 +444,9 @@ void* PictureManagerKernel(void *input_ptr)
                 // Create Reference Queue Entry even if picture will not be referenced
                 referenceEntryPtr = encode_context_ptr->reference_picture_queue[encode_context_ptr->reference_picture_queue_tail_index];
                 referenceEntryPtr->picture_number = picture_control_set_ptr->picture_number;
+#if BASE_LAYER_REF
+                referenceEntryPtr->slice_type     = picture_control_set_ptr->slice_type;
+#endif
                 referenceEntryPtr->referenceObjectPtr = (EbObjectWrapper_t*)EB_NULL;
                 referenceEntryPtr->releaseEnable = EB_TRUE;
                 referenceEntryPtr->referenceAvailable = EB_FALSE;
@@ -468,7 +472,7 @@ void* PictureManagerKernel(void *input_ptr)
 
 #if BASE_LAYER_REF
                 if (picture_control_set_ptr->slice_type == I_SLICE)
-                    referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + 10;// 3;
+                    referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount + sequence_control_set_ptr->extra_frames_to_ref_islice;
                 else
                     referenceEntryPtr->depList1Count = referenceEntryPtr->list1.listCount;
 #else

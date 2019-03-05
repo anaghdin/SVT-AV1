@@ -35,6 +35,9 @@
 extern "C" {
 #endif
 #define BASE_LAYER_REF 1
+#if BASE_LAYER_REF
+#define MAX_FRAMES_TO_REF_I                             100
+#endif
 
      //Mode definition : Only one mode should be ON at a time
 
