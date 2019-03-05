@@ -515,20 +515,7 @@ EbErrorType update_base_layer_reference_queue_dependent_count(
 
                 // 3rd step: update the dependant count
                 dependant_list_removed_entries = input_entry_ptr->depList0Count + input_entry_ptr->depList1Count - input_entry_ptr->dependentCount;
-#if 1//BASE_LAYER_REF
-                {
-                    printf("POC:%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
-                        input_entry_ptr->picture_number,
-                        dependant_list_removed_entries,
-                        input_entry_ptr->depList0Count,
-                        input_entry_ptr->depList1Count,
-                        input_entry_ptr->list0.listCount,
-                        input_entry_ptr->list1.listCount,
-                        sequence_control_set_ptr->extra_frames_to_ref_islice,
-                        input_entry_ptr->dependentCount);
-                }
-#endif                
-                
+                       
                 input_entry_ptr->depList0Count = input_entry_ptr->list0.listCount;
 
 #if BASE_LAYER_REF
@@ -540,17 +527,6 @@ EbErrorType update_base_layer_reference_queue_dependent_count(
                 input_entry_ptr->depList1Count = input_entry_ptr->list1.listCount;
 #endif
                 input_entry_ptr->dependentCount = input_entry_ptr->depList0Count + input_entry_ptr->depList1Count - dependant_list_removed_entries;
-
-#if 1//BASE_LAYER_REF
-                {
-                    printf("POC:%d\t%d\t%d\t%d\t%d\n",
-                        input_entry_ptr->picture_number,
-                        dependant_list_removed_entries,
-                        input_entry_ptr->depList0Count,
-                        input_entry_ptr->depList1Count,
-                        input_entry_ptr->dependentCount);
-                }
-#endif   
 
             }
             else {
@@ -1085,7 +1061,7 @@ void  Av1GenerateRpsInfo(
         //                 4
         //base0:0                      base1:8
 #if BASE_LAYER_REF
-        const uint8_t  iSlice_idx = 7;
+        const uint8_t  islice_idx = 7;
 #endif
         const uint8_t  base0_idx = context_ptr->miniGopToggle ? 0 : 3; //Base layer for prediction from past
         const uint8_t  base1_idx = context_ptr->miniGopToggle ? 3 : 0; //Base layer for prediction from future
@@ -1099,7 +1075,7 @@ void  Av1GenerateRpsInfo(
             av1Rps->refDpbIndex[0] = base0_idx;
 #if BASE_LAYER_REF
             if(picture_control_set_ptr->picture_number < picture_control_set_ptr->sequence_control_set_ptr->max_frame_window_to_ref_islice + picture_control_set_ptr->last_islice_picture_number)
-                av1Rps->refDpbIndex[6] = iSlice_idx;
+                av1Rps->refDpbIndex[6] = islice_idx;
             else
                 av1Rps->refDpbIndex[6] = base0_idx;
             av1Rps->refreshFrameMask = picture_control_set_ptr->slice_type == I_SLICE ? (context_ptr->miniGopToggle ? (128 + 8) : (128 + 1)) : (context_ptr->miniGopToggle ? 8 : 1);
@@ -1262,7 +1238,7 @@ void  Av1GenerateRpsInfo(
     //                              8
     //base0:0                                               base1:16
 #if BASE_LAYER_REF
-    const uint8_t  iSlice_idx = 7; 
+    const uint8_t  islice_idx = 7; 
 #endif
     const uint8_t  base0_idx = context_ptr->miniGopToggle ? 0 : 3; //Base layer for prediction from past
     const uint8_t  base1_idx = context_ptr->miniGopToggle ? 3 : 0; //Base layer for prediction from future
@@ -1278,7 +1254,7 @@ void  Av1GenerateRpsInfo(
         av1Rps->refDpbIndex[0] = base0_idx;
 #if BASE_LAYER_REF
         if (picture_control_set_ptr->picture_number < picture_control_set_ptr->sequence_control_set_ptr->max_frame_window_to_ref_islice + picture_control_set_ptr->last_islice_picture_number)
-            av1Rps->refDpbIndex[6] = iSlice_idx;
+            av1Rps->refDpbIndex[6] = islice_idx;
         else
             av1Rps->refDpbIndex[6] = base0_idx;
         av1Rps->refreshFrameMask = picture_control_set_ptr->slice_type == I_SLICE ? (context_ptr->miniGopToggle ? (128+8) : (128+1)) : (context_ptr->miniGopToggle ? 8 : 1);
@@ -1860,6 +1836,9 @@ void* PictureDecisionKernel(void *input_ptr)
                             picture_control_set_ptr = (PictureParentControlSet_t*)encode_context_ptr->pre_assignment_buffer[pictureIndex]->objectPtr;
                             sequence_control_set_ptr = (SequenceControlSet_t*)picture_control_set_ptr->sequence_control_set_wrapper_ptr->objectPtr;
 
+#if BASE_LAYER_REF
+                            picture_control_set_ptr->last_islice_picture_number = context_ptr->last_islice_picture_number;
+#endif
                             // Keep track of the mini GOP size to which the input picture belongs - needed @ PictureManagerProcess()
                             picture_control_set_ptr->pre_assignment_buffer_count = context_ptr->miniGopLength[miniGopIndex];
 
@@ -2107,9 +2086,7 @@ void* PictureDecisionKernel(void *input_ptr)
                                     picture_control_set_ptr->is_skip_mode_allowed   = 1;
                                     picture_control_set_ptr->skip_mode_flag         = 1;
                                 }
-#if BASE_LAYER_REF
-                                picture_control_set_ptr->last_islice_picture_number = context_ptr->last_islice_picture_number;
-#endif
+
 #else
 
                                 if (picture_control_set_ptr->temporal_layer_index == 0 || picture_control_set_ptr->slice_type == P_SLICE) {
@@ -2293,25 +2270,19 @@ void* PictureDecisionKernel(void *input_ptr)
 #if BASE_LAYER_REF
                             inputEntryPtr->list0Ptr->referenceList       = predPositionPtr->refList0.referenceList;
                             inputEntryPtr->list0Ptr->referenceListCount  = predPositionPtr->refList0.referenceListCount;         
-                           
+
                             if (picture_control_set_ptr->temporal_layer_index == 0 && (pictureType != I_SLICE) && picture_control_set_ptr->picture_number < sequence_control_set_ptr->max_frame_window_to_ref_islice + picture_control_set_ptr->last_islice_picture_number)
                                 inputEntryPtr->list1Ptr->referenceList = picture_control_set_ptr->picture_number - picture_control_set_ptr->last_islice_picture_number;
                             else 
                                 inputEntryPtr->list1Ptr->referenceList = predPositionPtr->refList1.referenceList;
                             inputEntryPtr->list1Ptr->referenceListCount = predPositionPtr->refList1.referenceListCount;
+
 #else
                             inputEntryPtr->list0Ptr = &predPositionPtr->refList0;
                             inputEntryPtr->list1Ptr = &predPositionPtr->refList1;
 #endif
                             {
-#if 1//BASE_LAYER_REF
-                                if (picture_control_set_ptr->slice_type == I_SLICE) {
-                                    printf("-1_POC:%d\t%d\t%d\n",
-                                        picture_control_set_ptr->picture_number,
-                                        predPositionPtr->depList0.listCount,
-                                        predPositionPtr->depList1.listCount);
-                                }
-#endif
+
                                 // Copy the Dependent Lists
                                 // *Note - we are removing any leading picture dependencies for now
                                 inputEntryPtr->list0.listCount = 0;
@@ -2325,18 +2296,10 @@ void* PictureDecisionKernel(void *input_ptr)
                                     inputEntryPtr->list1.list[depIdx] = predPositionPtr->depList1.list[depIdx];
                                 }
                                 inputEntryPtr->depList0Count = inputEntryPtr->list0.listCount;
-#if 1//BASE_LAYER_REF
-                                if (picture_control_set_ptr->slice_type == I_SLICE) {
-                                    printf("0_POC:%d\t%d\t%d\n",
-                                        picture_control_set_ptr->picture_number,
-                                        inputEntryPtr->list0.listCount,
-                                        inputEntryPtr->list1.listCount);
-                                }
 
-#endif
 #if BASE_LAYER_REF
                                 if (picture_control_set_ptr->slice_type == I_SLICE)
-                                    inputEntryPtr->depList1Count = inputEntryPtr->list1.listCount +sequence_control_set_ptr->extra_frames_to_ref_islice;
+                                    inputEntryPtr->depList1Count = inputEntryPtr->list1.listCount + sequence_control_set_ptr->extra_frames_to_ref_islice;
                                 else
                                     inputEntryPtr->depList1Count = inputEntryPtr->list1.listCount;
 #else
@@ -2345,28 +2308,7 @@ void* PictureDecisionKernel(void *input_ptr)
                                 inputEntryPtr->dependentCount = inputEntryPtr->depList0Count + inputEntryPtr->depList1Count;
 
                             }
-#if BASE_LAYER_REF
-                            if (picture_control_set_ptr->slice_type == I_SLICE) {
-                                printf("1_POC:%d\t%d\t%d\n",
-                                    picture_control_set_ptr->picture_number,
-                                    inputEntryPtr->depList0Count,
-                                    inputEntryPtr->depList1Count);
-                            }
-#endif
-#if 0//NEW_PRED_STRUCT //BASE_LAYER_REF
-                            if (is_supposedly_4L_reference_frame(context_ptr, miniGopIndex, pictureIndex)) {
-#if 1 //BASE_LAYER_REF
-                                /*if (inputEntryPtr->pPcsPtr->slice_type == 2)*/ {
-                                    printf("INC %d\t%d \n",
-                                        picture_control_set_ptr->picture_number,
-                                        inputEntryPtr->dependentCount);
 
-
-                                }
-#endif
-                                inputEntryPtr->dependentCount++;
-                            }
-#endif
                             ((EbPaReferenceObject_t*)picture_control_set_ptr->pa_reference_picture_wrapper_ptr->objectPtr)->dependentPicturesCount = inputEntryPtr->dependentCount;
 
                             /* uint32_t depCnt = ((EbPaReferenceObject_t*)picture_control_set_ptr->pa_reference_picture_wrapper_ptr->objectPtr)->dependentPicturesCount;
@@ -2455,15 +2397,6 @@ void* PictureDecisionKernel(void *input_ptr)
                                     EbObjectIncLiveCount(
                                         paReferenceEntryPtr->pPcsPtr->p_pcs_wrapper_ptr,
                                         1);
-#if 1 //BASE_LAYER_REF
-                                    if (paReferenceEntryPtr->pPcsPtr->slice_type == 2) {
-                                        printf("List 0 %d\t%d \n",
-                                            picture_control_set_ptr->picture_number,
-                                            paReferenceEntryPtr->dependentCount);
-
-
-                                    }
-#endif
 
                                     --paReferenceEntryPtr->dependentCount;
                                 }
@@ -2500,19 +2433,7 @@ void* PictureDecisionKernel(void *input_ptr)
                                     EbObjectIncLiveCount(
                                         paReferenceEntryPtr->pPcsPtr->p_pcs_wrapper_ptr,
                                         1);
-#if 1 //BASE_LAYER_REF
-                                    if (paReferenceEntryPtr->pPcsPtr->slice_type == 2) {
-                                        printf("List 1 %d\t%d \n",
-                                            picture_control_set_ptr->picture_number,
-                                            paReferenceEntryPtr->dependentCount);
-
-
-                                    }
-#endif
-
                                     --paReferenceEntryPtr->dependentCount;
-
-
                                 }
                             }
 #if BASE_LAYER_REF
@@ -2522,7 +2443,6 @@ void* PictureDecisionKernel(void *input_ptr)
                                 else
                                     picture_control_set_ptr->is_skip_mode_allowed = 1;
                             }
-                           
 #endif
                             // SB Loop to reset similarColocatedLcu Array
                             uint16_t *variancePtr;
@@ -2621,14 +2541,6 @@ void* PictureDecisionKernel(void *input_ptr)
                     if ((inputEntryPtr->dependentCount == 0) &&
                         (inputEntryPtr->inputObjectPtr)) {
 
-#if 1 //BASE_LAYER_REF
-                        if (inputEntryPtr->dependentCount == 0 && inputEntryPtr->pPcsPtr->slice_type == 2) {
-                            printf("%d RELEASED\n",
-                                inputEntryPtr->picture_number);
-
-
-                        }
-#endif
                         EbReleaseObject(inputEntryPtr->pPcsPtr->p_pcs_wrapper_ptr);
                         // Release the nominal liveCount value
                         EbReleaseObject(inputEntryPtr->inputObjectPtr);

@@ -954,7 +954,7 @@ void InjectAv1MvpCandidates(
     uint32_t                   canIdx = *candTotCnt;
     ModeDecisionCandidate_t    *candidateArray = context_ptr->fast_candidate_array;
     EbBool isCompoundEnabled = (picture_control_set_ptr->parent_pcs_ptr->reference_mode == SINGLE_REFERENCE) ? 0 : 1;
-#if !BASE_LAYER_REF
+#if  !BASE_LAYER_REF
     isCompoundEnabled = (context_ptr->blk_geom->bwidth == 4 || context_ptr->blk_geom->bheight == 4) ? EB_FALSE : isCompoundEnabled;
 #endif
 

@@ -430,6 +430,7 @@ void* PictureManagerKernel(void *input_ptr)
                 else
                     inputEntryPtr->list1Ptr->referenceList  = predPositionPtr->refList1.referenceList;
                 inputEntryPtr->list1Ptr->referenceListCount = predPositionPtr->refList1.referenceListCount;
+
 #else
                 inputEntryPtr->list0Ptr = &predPositionPtr->refList0;
                 inputEntryPtr->list1Ptr = &predPositionPtr->refList1;

@@ -800,12 +800,6 @@ void* ResourceCoordinationKernel(void *input_ptr)
 #if BASE_LAYER_REF
             sequence_control_set_ptr->max_frame_window_to_ref_islice = (sequence_control_set_ptr->static_config.intra_period_length == -1) ? MAX_FRAMES_TO_REF_I : MIN(MAX_FRAMES_TO_REF_I, sequence_control_set_ptr->static_config.intra_period_length);
             sequence_control_set_ptr->extra_frames_to_ref_islice = MAX(sequence_control_set_ptr->max_frame_window_to_ref_islice / (1 << sequence_control_set_ptr->static_config.hierarchical_levels) - 1, 0);
-            //if (sequence_control_set_ptr->static_config.hierarchical_levels == 4) {
-            //    // if minigop is 16, check if the last minigop is switched to minigop of 8 and increase the extra_frames_to_ref_islice
-            //    if (max_frame_window_to_ref_islice % (1 << sequence_control_set_ptr->static_config.hierarchical_levels) > (1 << (sequence_control_set_ptr->static_config.hierarchical_levels - 1)))
-            //        sequence_control_set_ptr->extra_frames_to_ref_islice++;
-
-            //}
 #endif
         }
 
