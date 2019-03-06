@@ -34,7 +34,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#define RC                                         1
      //Mode definition : Only one mode should be ON at a time
 
 #define MR_MODE                                         0

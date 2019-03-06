@@ -644,14 +644,17 @@ void* MotionEstimationKernel(void *input_ptr)
                             picture_control_set_ptr->me_distortion_histogram[sadIntervalIndex] ++;
 
                             uint32_t                       bestOisCuIndex = 0;
+#if RC 
 
+                            intra_sad_interval_index = picture_control_set_ptr->variance[sb_index][ME_TIER_ZERO_PU_64x64] >> 4;
+#else
                             //DOUBLE CHECK THIS PIECE OF CODE
                             intra_sad_interval_index = (uint32_t)
                                 (((picture_control_set_ptr->ois_cu32_cu16_results[sb_index]->sorted_ois_candidate[1][bestOisCuIndex].distortion +
                                     picture_control_set_ptr->ois_cu32_cu16_results[sb_index]->sorted_ois_candidate[2][bestOisCuIndex].distortion +
                                     picture_control_set_ptr->ois_cu32_cu16_results[sb_index]->sorted_ois_candidate[3][bestOisCuIndex].distortion +
                                     picture_control_set_ptr->ois_cu32_cu16_results[sb_index]->sorted_ois_candidate[4][bestOisCuIndex].distortion)) >> (12 - SAD_PRECISION_INTERVAL));//change 12 to 2*log2(64) ;
-
+#endif
                             intra_sad_interval_index = (uint16_t)(intra_sad_interval_index >> 2);
                             if (intra_sad_interval_index > (NUMBER_OF_SAD_INTERVALS >> 1) - 1) {
                                 uint32_t sadIntervalIndexTemp = intra_sad_interval_index - ((NUMBER_OF_SAD_INTERVALS >> 1) - 1);
@@ -691,7 +694,10 @@ void* MotionEstimationKernel(void *input_ptr)
 
                         if (sb_width == BLOCK_SIZE_64 && sb_height == BLOCK_SIZE_64) {
 
+#if RC 
 
+                            intra_sad_interval_index = picture_control_set_ptr->variance[sb_index][ME_TIER_ZERO_PU_64x64] >> 4;
+#else
                             //DOUBLE CHECK THIS PIECE OF CODE
 
                             intra_sad_interval_index = (uint32_t)
@@ -699,7 +705,7 @@ void* MotionEstimationKernel(void *input_ptr)
                                     picture_control_set_ptr->ois_cu32_cu16_results[sb_index]->sorted_ois_candidate[2][bestOisCuIndex].distortion +
                                     picture_control_set_ptr->ois_cu32_cu16_results[sb_index]->sorted_ois_candidate[3][bestOisCuIndex].distortion +
                                     picture_control_set_ptr->ois_cu32_cu16_results[sb_index]->sorted_ois_candidate[4][bestOisCuIndex].distortion)) >> (12 - SAD_PRECISION_INTERVAL));//change 12 to 2*log2(64) ;
-
+#endif
                             intra_sad_interval_index = (uint16_t)(intra_sad_interval_index >> 2);
                             if (intra_sad_interval_index > (NUMBER_OF_SAD_INTERVALS >> 1) - 1) {
                                 uint32_t sadIntervalIndexTemp = intra_sad_interval_index - ((NUMBER_OF_SAD_INTERVALS >> 1) - 1);
