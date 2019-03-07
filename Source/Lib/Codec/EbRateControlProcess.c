@@ -5330,7 +5330,7 @@ void* rate_control_kernel(void *input_ptr)
 
             parentpicture_control_set_ptr = (PictureParentControlSet_t  *)rate_control_tasks_ptr->pictureControlSetWrapperPtr->object_ptr;
             sequence_control_set_ptr = (SequenceControlSet_t *)parentpicture_control_set_ptr->sequence_control_set_wrapper_ptr->object_ptr;
-
+#if RC_FEEDBACK
             if (sequence_control_set_ptr->static_config.rate_control_mode) {
                 rate_control_update_model(rc_model_ptr, parentpicture_control_set_ptr);
                 ReferenceQueueEntry_t           *reference_entry_ptr;
@@ -5341,13 +5341,10 @@ void* rate_control_kernel(void *input_ptr)
                 do {
 
                     reference_entry_ptr = encode_context_ptr->reference_picture_queue[reference_queue_index];
-
                     if (reference_entry_ptr->picture_number == parentpicture_control_set_ptr->picture_number) {
 
                         // Set the feedback arrived
-#if 0 //RC // AMIR
                         reference_entry_ptr->feedback_arrived = EB_TRUE;
-#endif
                     }
 
                     // Increment the reference_queue_index Iterator
@@ -5355,6 +5352,7 @@ void* rate_control_kernel(void *input_ptr)
 
                 } while ((reference_queue_index != encode_context_ptr->reference_picture_queue_tail_index) && (reference_entry_ptr->picture_number != parentpicture_control_set_ptr->picture_number));
             }
+#endif
             // Frame level RC
             if (sequence_control_set_ptr->intra_period_length == -1 || sequence_control_set_ptr->static_config.rate_control_mode == 0) {
                 rate_control_param_ptr = context_ptr->rate_control_param_queue[0];

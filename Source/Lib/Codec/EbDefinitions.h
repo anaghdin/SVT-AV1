@@ -35,7 +35,7 @@
 extern "C" {
 #endif
 #define RC                                         1
-
+#define RC_FEEDBACK                 1
 #if RC
 #define VP9_RC_PRINTS               1
 #define RC_NO_EXTRA                 1
