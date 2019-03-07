@@ -35,6 +35,11 @@
 extern "C" {
 #endif
 #define RC                                         1
+
+#if RC
+#define VP9_RC_PRINTS               1
+#define RC_NO_EXTRA                 1
+#endif
      //Mode definition : Only one mode should be ON at a time
 
 #define MR_MODE                                         0
@@ -2184,9 +2189,13 @@ typedef struct EbMemoryMapEntry
 } EbMemoryMapEntry;
 
 // Rate Control
+#if RC
+#define THRESHOLD1QPINCREASE     1
+#define THRESHOLD2QPINCREASE     2
+#else
 #define THRESHOLD1QPINCREASE     0
 #define THRESHOLD2QPINCREASE     1
-
+#endif
 #define EB_IOS_POINT            uint8_t
 #define OIS_VERY_FAST_MODE       0
 #define OIS_FAST_MODE            1

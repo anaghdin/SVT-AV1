@@ -45,6 +45,7 @@ typedef struct HlRateControlHistogramEntry_s {
     uint64_t                          pred_bits_ref_qp[MAX_REF_QP_NUM];
     EB_SLICE                        slice_type;
     uint32_t                          temporal_layer_index;
+    uint32_t                        frames_in_sw;
 
 
     // Motion Estimation Distortion and OIS Historgram

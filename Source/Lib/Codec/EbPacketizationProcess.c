@@ -14,6 +14,9 @@
 #include "EbEntropyCoding.h"
 #include "EbRateControlTasks.h"
 #include "EbTime.h"
+#if RC
+#include "EbModeDecisionProcess.h"
+#endif
 
 static EbBool IsPassthroughData(EbLinkedListNode* dataNode)
 {
@@ -155,7 +158,7 @@ void update_rc_rate_tables(
                                 sad_bits_ref_dequant = sadBits[sad_interval_index] * ref_qindex_dequant;
                                 for (qp_index = sequence_control_set_ptr->static_config.min_qp_allowed; qp_index <= (int32_t)sequence_control_set_ptr->static_config.max_qp_allowed; qp_index++) {
                                     encode_context_ptr->rate_control_tables_array[qp_index].intra_sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] =
-                                        (EbBitNumber)(((weight * sad_bits_ref_dequant / picture_control_set_ptr->parent_pcs_ptr->deq.y_dequant_QTX[vp9_quantizer_to_qindex(qp_index)][1])
+                                        (EbBitNumber)(((weight * sad_bits_ref_dequant / picture_control_set_ptr->parent_pcs_ptr->deq.y_dequant_QTX[quantizer_to_qindex[qp_index]][1])
                                             + (10 - weight) * (uint32_t)encode_context_ptr->rate_control_tables_array[qp_index].intra_sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] + 5) / 10);
 
                                     encode_context_ptr->rate_control_tables_array[qp_index].intra_sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] =
@@ -181,7 +184,7 @@ void update_rc_rate_tables(
                                 sad_bits_ref_dequant = sadBits[sad_interval_index] * ref_qindex_dequant;
                                 for (qp_index = sequence_control_set_ptr->static_config.min_qp_allowed; qp_index <= (int32_t)sequence_control_set_ptr->static_config.max_qp_allowed; qp_index++) {
                                     encode_context_ptr->rate_control_tables_array[qp_index].intra_sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] =
-                                        (EbBitNumber)(((weight * sad_bits_ref_dequant / picture_control_set_ptr->parent_pcs_ptr->deq.y_dequant_QTX[vp9_quantizer_to_qindex(qp_index)][1])
+                                        (EbBitNumber)(((weight * sad_bits_ref_dequant / picture_control_set_ptr->parent_pcs_ptr->deq.y_dequant_QTX[quantizer_to_qindex[qp_index]][1])
                                             + (10 - weight) * (uint32_t)encode_context_ptr->rate_control_tables_array[qp_index].intra_sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] + 5) / 10);
 
                                     encode_context_ptr->rate_control_tables_array[qp_index].intra_sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] =
@@ -213,7 +216,7 @@ void update_rc_rate_tables(
                                 sad_bits_ref_dequant = sadBits[sad_interval_index] * ref_qindex_dequant;
                                 for (qp_index = sequence_control_set_ptr->static_config.min_qp_allowed; qp_index <= (int32_t)sequence_control_set_ptr->static_config.max_qp_allowed; qp_index++) {
                                     encode_context_ptr->rate_control_tables_array[qp_index].sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] =
-                                        (EbBitNumber)(((weight * sad_bits_ref_dequant / picture_control_set_ptr->parent_pcs_ptr->deq.y_dequant_QTX[vp9_quantizer_to_qindex(qp_index)][1])
+                                        (EbBitNumber)(((weight * sad_bits_ref_dequant / picture_control_set_ptr->parent_pcs_ptr->deq.y_dequant_QTX[quantizer_to_qindex[qp_index]][1])
                                             + (10 - weight) * (uint32_t)encode_context_ptr->rate_control_tables_array[qp_index].sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] + 5) / 10);
                                     encode_context_ptr->rate_control_tables_array[qp_index].sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] =
                                         MIN((uint16_t)encode_context_ptr->rate_control_tables_array[qp_index].sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index], (uint16_t)((1 << 15) - 1));
@@ -239,7 +242,7 @@ void update_rc_rate_tables(
                                 sad_bits_ref_dequant = sadBits[sad_interval_index] * ref_qindex_dequant;
                                 for (qp_index = sequence_control_set_ptr->static_config.min_qp_allowed; qp_index <= (int32_t)sequence_control_set_ptr->static_config.max_qp_allowed; qp_index++) {
                                     encode_context_ptr->rate_control_tables_array[qp_index].sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] =
-                                        (EbBitNumber)(((weight * sad_bits_ref_dequant / picture_control_set_ptr->parent_pcs_ptr->deq.y_dequant_QTX[vp9_quantizer_to_qindex(qp_index)][1])
+                                        (EbBitNumber)(((weight * sad_bits_ref_dequant / picture_control_set_ptr->parent_pcs_ptr->deq.y_dequant_QTX[quantizer_to_qindex[qp_index]][1])
                                             + (10 - weight) * (uint32_t)encode_context_ptr->rate_control_tables_array[qp_index].sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] + 5) / 10);
                                     encode_context_ptr->rate_control_tables_array[qp_index].sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] =
                                         MIN((uint16_t)encode_context_ptr->rate_control_tables_array[qp_index].sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index], (uint16_t)((1 << 15) - 1));
@@ -399,6 +402,7 @@ void* PacketizationKernel(void *input_ptr)
         picture_control_set_ptr->parent_pcs_ptr->total_num_bits = output_stream_ptr->n_filled_len << 3;
 
 #if  RC
+        queueEntryPtr->total_num_bits = picture_control_set_ptr->parent_pcs_ptr->total_num_bits;
         // update the rate tables used in RC based on the encoded bits of each sb
         update_rc_rate_tables(
             picture_control_set_ptr,

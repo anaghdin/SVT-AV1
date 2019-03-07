@@ -15,8 +15,6 @@
 #define SAD_CLIP_COEFF                5
 // 88 + 3*16*8
 #define SLICE_HEADER_BITS_NUM       104
-#define PPS_BITS_NUM                 80
-#define SPS_BITS_NUM                296
 #define RC_PRECISION                16
 #define RC_PRECISION_OFFSET         (1 << (RC_PRECISION - 1))
 
@@ -29,17 +27,9 @@
 #endif
 
 #define ADAPTIVE_PERCENTAGE 1
-#define     RC_INTRA_QP_OFFSET              (-1)
-
-#define     RC_DISABLE_FLRC                 0
-#define     RC_DISABLE_FLRC_RATE_UPDATE     0
-#define     RC_DISABLE_HLRC_RATE_INPUT      1
-#define     RC_DISABLE_PRED_QP_LIMIT        1
-#define     RC_DISABLE_EXTRA_BITS           0
-#define     RC_NEW_EXTRA_BITS               1
 #define     RC_UPDATE_TARGET_RATE           1
 
-#define        RC_QPMOD_MAXQP                    42
+#define        RC_QPMOD_MAXQP                    54
 
 static const uint32_t  rate_percentage_layer_array[EB_MAX_TEMPORAL_LAYERS][EB_MAX_TEMPORAL_LAYERS] = {
     {100,  0,  0,  0,  0,  0 },
@@ -66,27 +56,6 @@ static const uint64_t two_to_power_qp_over_three[] = {
       0x285145F3,   0x32CBFD4A,  0x40000000,  0x50A28BE6,
       0x6597FA95,   0x80000000,  0xA14517CC,  0xCB2FF52A,
      0x100000000,  0x1428A2F99, 0x1965FEA54, 0x200000000
-};
-// range is from -51 to 51 (0 to 102)
-static const uint64_t two_to_power_x_over_six[] = {
-         0xB5,       0xCB,        0xE4,        0xFF,        0x11F,        0x142,
-        0x16A,      0x196,       0x1C8,       0x1FF,        0x23E,        0x285,
-        0x2D4,      0x32C,       0x390,       0x3FF,        0x47D,        0x50A,
-        0x5A8,      0x659,       0x720,       0x7FF,        0x8FA,        0xA14,
-        0xB50,      0xCB2,       0xE41,       0xFFF,       0x11F5,       0x1428,
-       0x16A0,     0x1965,      0x1C82,      0x1FFF,       0x23EB,       0x2851,
-       0x2D41,     0x32CB,      0x3904,      0x3FFF,       0x47D6,       0x50A2,
-       0x5A82,     0x6597,      0x7208,      0x7FFF,       0x8FAC,       0xA144,
-       0xB504,     0xCB2F,      0xE411,      0xFFFF,      0x11F58,      0x14288,
-      0x16A08,    0x1965E,     0x1C822,     0x1FFFE,      0x23EB1,    0x28511,
-      0x2D410,    0x32CBC,     0x39044,     0x3FFFC,      0x47D62,    0x50A23,
-      0x5A821,    0x65979,     0x72088,     0x7FFF8,      0x8FAC4,    0xA1447,
-      0xB5043,    0xCB2F2,     0xE4110,     0xFFFF0,     0x11F588,   0x14288E,
-     0x16A087,   0x1965E5,    0x1C8221,    0x1FFFE0,     0x23EB11,   0x28511D,
-     0x2D410F,   0x32CBCA,    0x390443,    0x3FFFC0,     0x47D623,   0x50A23B,
-     0x5A821F,   0x659794,    0x720886,    0x7FFF80,     0x8FAC46,   0xA14476,
-     0xB5043E,   0xCB2F29,    0xE4110C,    0xFFFF00,    0x11F588C,  0x14288ED,
-     0x16A087C
 };
 /**************************************
  * Input Port Types

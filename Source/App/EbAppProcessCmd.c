@@ -1479,7 +1479,7 @@ APPEXITCONDITIONTYPE ProcessOutputStreamBuffer(
         // Release the output buffer
         eb_svt_release_out_buffer(&headerPtr);
 
-#if DEADLOCK_DEBUG
+#if DEADLOCK_DEBUG || 1 //VP9_RC_PRINTS
         ++frameCount;
 #else
         //++frameCount;
