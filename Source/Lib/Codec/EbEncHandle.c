@@ -434,7 +434,9 @@ int32_t set_parent_pcs(EbSvtAv1EncConfiguration*   config) {
         fps        = fps < 24  ? 24    : fps; 
         ppcs_count = MAX(min_ppcs_count, fps);
         ppcs_count = ((ppcs_count * 5) >> 2);  // 1.25 sec worth of internal buffering
-    
+#if RC
+        ppcs_count = (ppcs_count + config->look_ahead_distance);
+#endif
         return (int32_t) ppcs_count;
     }
     else{
