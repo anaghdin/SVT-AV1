@@ -1869,11 +1869,11 @@ void frame_level_rc_feedback_picture_vbr(
                 rate_control_param_ptr->virtual_buffer_level =
                     (int64_t)rate_control_param_ptr->previous_virtual_buffer_level +
                     (int64_t)previous_frame_bit_actual - (int64_t)rate_control_layer_ptr->channel_bit_rate;
-#if !RC 
+#if 1//!RC 
                 context_ptr->extra_bits_gen -= (int64_t)previous_frame_bit_actual - (int64_t)rate_control_layer_ptr->channel_bit_rate;
 #endif
             }
-#if RC 
+#if 0 //RC 
             context_ptr->extra_bits_gen -= (int64_t)previous_frame_bit_actual - (int64_t)context_ptr->high_level_rate_control_ptr->channel_bit_rate_per_frame;
 #endif
             if (parentpicture_control_set_ptr->hierarchical_levels > 1 && rate_control_layer_ptr->frame_same_distortion_min_qp_count > 10) {
@@ -2098,7 +2098,7 @@ void frame_level_rc_feedback_picture_vbr(
         }
     }
 
-#if 0//VP9_RC_PRINTS
+#if 1//VP9_RC_PRINTS
     ////if (parentpicture_control_set_ptr->temporal_layer_index == 0)
     {
         SVT_LOG("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%.0f\t%.0f\t%.0f\t%.0f\t%d\t%d\n",
@@ -3725,11 +3725,11 @@ void frame_level_rc_feedback_picture_cbr(
                 rate_control_param_ptr->virtual_buffer_level =
                     (int64_t)rate_control_param_ptr->previous_virtual_buffer_level +
                     (int64_t)previous_frame_bit_actual - (int64_t)rate_control_layer_ptr->channel_bit_rate;
-#if !RC 
+#if 1//!RC 
                 context_ptr->extra_bits_gen -= (int64_t)previous_frame_bit_actual - (int64_t)rate_control_layer_ptr->channel_bit_rate;
 #endif
             }
-#if RC 
+#if 0//RC 
             context_ptr->extra_bits_gen -= (int64_t)previous_frame_bit_actual - (int64_t)context_ptr->high_level_rate_control_ptr->channel_bit_rate_per_frame;
 #endif
 #if RC_NO_EXTRA
@@ -5314,12 +5314,12 @@ void* rate_control_kernel(void *input_ptr)
                         rate_control_param_ptr);
 
                     // rate control QP refinement
-                    //rate_control_refinement(
-                    //    picture_control_set_ptr,
-                    //    sequence_control_set_ptr,
-                    //    rate_control_param_ptr,
-                    //    prev_gop_rate_control_param_ptr,
-                    //    next_gop_rate_control_param_ptr);
+                    rate_control_refinement(
+                        picture_control_set_ptr,
+                        sequence_control_set_ptr,
+                        rate_control_param_ptr,
+                        prev_gop_rate_control_param_ptr,
+                        next_gop_rate_control_param_ptr);
                 }
                 else {
 

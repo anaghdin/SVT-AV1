@@ -2770,7 +2770,11 @@ EbErrorType eb_svt_enc_init_parameter(
     config_ptr->look_ahead_distance = (uint32_t)~0;
     config_ptr->target_bit_rate = 7000000;
     config_ptr->max_qp_allowed = 63;
+#if RC
+    config_ptr->min_qp_allowed = 10;
+#else
     config_ptr->min_qp_allowed = 0;
+#endif
     config_ptr->base_layer_switch_mode = 0;
     config_ptr->enc_mode = MAX_ENC_PRESET;
     config_ptr->intra_period_length = 30;
