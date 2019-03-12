@@ -166,7 +166,10 @@ extern "C" {
 #define DISABLE_128_SB_FOR_SUB_720                      1
 
 #define IMPROVE_CHROMA_MODE                  1
-
+#define RC                                              1 // VBR RAte control integrated from SVT-VP9
+#if RC
+#define RC_FEEDBACK                                     1 // Feedback from previous base layer is received before starting the next base layer frame
+#endif
 /********************************************************/
 /****************** Pre-defined Values ******************/
 /********************************************************/
@@ -2182,9 +2185,13 @@ typedef struct EbMemoryMapEntry
 } EbMemoryMapEntry;
 
 // Rate Control
+#if RC
+#define THRESHOLD1QPINCREASE     1
+#define THRESHOLD2QPINCREASE     2
+#else
 #define THRESHOLD1QPINCREASE     0
 #define THRESHOLD2QPINCREASE     1
-
+#endif
 #define EB_IOS_POINT            uint8_t
 #define OIS_VERY_FAST_MODE       0
 #define OIS_FAST_MODE            1
