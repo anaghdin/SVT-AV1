@@ -25,11 +25,11 @@
 #if OVERSHOOT_STAT_PRINT
 #define CODED_FRAMES_STAT_QUEUE_MAX_DEPTH   10000
 #endif
-#define RC_PRINTS               0
-#define ADAPTIVE_PERCENTAGE 1
-#define     RC_UPDATE_TARGET_RATE           1
+#define RC_PRINTS                   0
+#define ADAPTIVE_PERCENTAGE         1
+#define RC_UPDATE_TARGET_RATE       1
 
-#define        RC_QPMOD_MAXQP                    54
+#define RC_QPMOD_MAXQP             54
 
 static const uint32_t  rate_percentage_layer_array[EB_MAX_TEMPORAL_LAYERS][EB_MAX_TEMPORAL_LAYERS] = {
     {100,  0,  0,  0,  0,  0 },
