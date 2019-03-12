@@ -1287,7 +1287,7 @@ void UpdateHistogramQueueEntry(
     histogramQueueEntryPtr->life_count += picture_control_set_ptr->historgram_life_count;
     histogramQueueEntryPtr->passed_to_hlrc = EB_TRUE;
 #if RC
-    if (sequence_control_set_ptr->static_config.rate_control_mode == 2) {
+    if (sequence_control_set_ptr->static_config.rate_control_mode == 3) {
         histogramQueueEntryPtr->life_count += (int16_t)(sequence_control_set_ptr->static_config.intra_period_length + 1) - 3; // FramelevelRC does not decrease the life count for first picture in each temporal layer
 
     }

@@ -190,7 +190,6 @@ void rate_control_layer_reset(
     }
 }
 
-
 void rate_control_layer_reset_part2(
     RateControlContext_t      *context_ptr,
     RateControlLayerContext_t *rate_control_layer_ptr,
@@ -219,7 +218,6 @@ EbErrorType high_level_rate_control_context_ctor(
     return EB_ErrorNone;
 }
 
-
 EbErrorType rate_control_layer_context_ctor(
     RateControlLayerContext_t **entry_dbl_ptr) {
 
@@ -234,8 +232,6 @@ EbErrorType rate_control_layer_context_ctor(
 
     return EB_ErrorNone;
 }
-
-
 
 EbErrorType rate_control_interval_param_context_ctor(
     RateControlIntervalParamContext_t **entry_dbl_ptr) {
@@ -292,7 +288,6 @@ EbErrorType rate_control_coded_frames_stats_context_ctor(
 
     return EB_ErrorNone;
 }
-
 
 EbErrorType rate_control_context_ctor(
     RateControlContext_t **context_dbl_ptr,
@@ -381,7 +376,6 @@ EbErrorType rate_control_context_ctor(
     return EB_ErrorNone;
 }
 #if RC
-#if RC_CLEAN_UP
 uint64_t predict_bits(
     EncodeContext_t                 *encode_context_ptr,
     HlRateControlHistogramEntry_t   *hl_rate_control_histogram_ptr_temp,
@@ -436,7 +430,7 @@ uint64_t predict_bits(
     }
     return total_bits;
 }
-#endif
+
 void high_level_rc_input_picture_vbr(
     PictureParentControlSet_t     *picture_control_set_ptr,
     SequenceControlSet_t          *sequence_control_set_ptr,
@@ -701,61 +695,13 @@ void high_level_rc_input_picture_vbr(
                     if (ref_qp_table_index == previous_selected_ref_qp) {
                         hl_rate_control_histogram_ptr_temp->life_count--;
                     }
-#if RC_CLEAN_UP
+
                     hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = predict_bits(
                         encode_context_ptr,
                         hl_rate_control_histogram_ptr_temp,
                         ref_qp_index_temp,
                         area_in_pixel);
-#else
-                    if (hl_rate_control_histogram_ptr_temp->is_coded) {
-                        // If the frame is already coded, use the actual number of bits
-                        hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = hl_rate_control_histogram_ptr_temp->total_num_bits_coded;
-                    }
-                    else {
-                        rate_control_tables_ptr = &encode_context_ptr->rate_control_tables_array[ref_qp_index_temp];
-                        sad_bits_array_ptr = rate_control_tables_ptr->sad_bits_array[hl_rate_control_histogram_ptr_temp->temporal_layer_index];
-                        intra_sad_bits_array_ptr = rate_control_tables_ptr->intra_sad_bits_array[0];
-                        pred_bits_ref_qp = 0;
-                        num_of_full_sbs = 0;
 
-                        if (hl_rate_control_histogram_ptr_temp->slice_type == I_SLICE) {
-                            // Loop over block in the frame and calculated the predicted bits at reg QP
-                            unsigned i;
-                            uint32_t accum = 0;
-                            for (i = 0; i < NUMBER_OF_INTRA_SAD_INTERVALS; ++i)
-                            {
-                                accum += (uint32_t)((uint32_t)hl_rate_control_histogram_ptr_temp->ois_distortion_histogram[i] * (uint32_t)intra_sad_bits_array_ptr[i]);
-                            }
-
-                            pred_bits_ref_qp = accum;
-                            num_of_full_sbs = hl_rate_control_histogram_ptr_temp->full_sb_count;
-                            hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] += pred_bits_ref_qp;
-                        }
-                        else {
-                            unsigned i;
-                            uint32_t accum = 0;
-                            uint32_t accum_intra = 0;
-                            for (i = 0; i < NUMBER_OF_SAD_INTERVALS; ++i)
-                            {
-                                accum += (uint32_t)((uint32_t)hl_rate_control_histogram_ptr_temp->me_distortion_histogram[i] * (uint32_t)sad_bits_array_ptr[i]);
-                                accum_intra += (uint32_t)((uint32_t)hl_rate_control_histogram_ptr_temp->ois_distortion_histogram[i] * (uint32_t)intra_sad_bits_array_ptr[i]);
-
-                            }
-                            if (accum > accum_intra * 3)
-                                pred_bits_ref_qp = accum_intra;
-                            else
-                                pred_bits_ref_qp = accum;
-                            num_of_full_sbs = hl_rate_control_histogram_ptr_temp->full_sb_count;
-                            hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] += pred_bits_ref_qp;
-                        }
-
-                        // Scale for in complete LCSs
-                        //  pred_bits_ref_qp is normalized based on the area because of the LCUs at the picture boundries
-                        hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] * (uint64_t)area_in_pixel / (num_of_full_sbs << 12);
-
-                    }
-#endif
                     high_level_rate_control_ptr->pred_bits_ref_qpPerSw[ref_qp_index] += hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp];
 
                     // Store the pred_bits_ref_qp for the first frame in the window to PCS
@@ -830,66 +776,12 @@ void high_level_rc_input_picture_vbr(
                         sequence_control_set_ptr->static_config.max_qp_allowed,
                         ref_qp_index_temp);
 
-#if RC_CLEAN_UP
                     hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = predict_bits(
                         encode_context_ptr,
                         hl_rate_control_histogram_ptr_temp,
                         ref_qp_index_temp,
                         area_in_pixel);
-#else
-                    hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = 0;
-                    if (hl_rate_control_histogram_ptr_temp->is_coded) {
-                        hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = hl_rate_control_histogram_ptr_temp->total_num_bits_coded;
-                    }
-                    else {
-                        rate_control_tables_ptr = &encode_context_ptr->rate_control_tables_array[ref_qp_index_temp];
-                        sad_bits_array_ptr = rate_control_tables_ptr->sad_bits_array[hl_rate_control_histogram_ptr_temp->temporal_layer_index];
-                        intra_sad_bits_array_ptr = rate_control_tables_ptr->intra_sad_bits_array[hl_rate_control_histogram_ptr_temp->temporal_layer_index];
-                        pred_bits_ref_qp = 0;
 
-                        num_of_full_sbs = 0;
-
-                        if (hl_rate_control_histogram_ptr_temp->slice_type == I_SLICE) {
-                            // Loop over block in the frame and calculated the predicted bits at reg QP
-
-                            {
-                                unsigned i;
-                                uint32_t accum = 0;
-                                for (i = 0; i < NUMBER_OF_INTRA_SAD_INTERVALS; ++i)
-                                {
-                                    accum += (uint32_t)(hl_rate_control_histogram_ptr_temp->ois_distortion_histogram[i] * intra_sad_bits_array_ptr[i]);
-                                }
-
-                                pred_bits_ref_qp = accum;
-                                num_of_full_sbs = hl_rate_control_histogram_ptr_temp->full_sb_count;
-                            }
-                            hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] += pred_bits_ref_qp;
-                        }
-
-                        else {
-                            unsigned i;
-                            uint32_t accum = 0;
-                            uint32_t accum_intra = 0;
-                            for (i = 0; i < NUMBER_OF_SAD_INTERVALS; ++i)
-                            {
-                                accum += (uint32_t)(hl_rate_control_histogram_ptr_temp->me_distortion_histogram[i] * sad_bits_array_ptr[i]);
-                                accum_intra += (uint32_t)(hl_rate_control_histogram_ptr_temp->ois_distortion_histogram[i] * intra_sad_bits_array_ptr[i]);
-
-                            }
-                            if (accum > accum_intra * 3)
-                                pred_bits_ref_qp = accum_intra;
-                            else
-                                pred_bits_ref_qp = accum;
-                            num_of_full_sbs = hl_rate_control_histogram_ptr_temp->full_sb_count;
-                            hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] += pred_bits_ref_qp;
-                        }
-
-                        // Scale for in complete
-                        //  pred_bits_ref_qp is normalized based on the area because of the LCUs at the picture boundries
-                        hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] * (uint64_t)area_in_pixel / (num_of_full_sbs << 12);
-
-                    }
-#endif
                     high_level_rate_control_ptr->pred_bits_ref_qpPerSw[ref_qp_index] += hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp];
                     // Store the pred_bits_ref_qp for the first frame in the window to PCS
                     //  if(encode_context_ptr->hl_rate_control_historgram_queue_head_index == queue_entry_index_temp2)
@@ -1011,7 +903,7 @@ void high_level_rc_input_picture_vbr(
         }
 #endif
         picture_control_set_ptr->target_bits_best_pred_qp = picture_control_set_ptr->pred_bits_ref_qp[picture_control_set_ptr->best_pred_qp];
-#if VP9_RC_PRINTS
+#if RC_PRINTS
         if (picture_control_set_ptr->slice_type == 2)
         {
             SVT_LOG("\nTID: %d\t", picture_control_set_ptr->temporal_layer_index);
@@ -1711,13 +1603,8 @@ void frame_level_rc_feedback_picture_vbr(
                 rate_control_param_ptr->virtual_buffer_level =
                     (int64_t)rate_control_param_ptr->previous_virtual_buffer_level +
                     (int64_t)previous_frame_bit_actual - (int64_t)rate_control_layer_ptr->channel_bit_rate;
-#if 1//!RC 
                 context_ptr->extra_bits_gen -= (int64_t)previous_frame_bit_actual - (int64_t)rate_control_layer_ptr->channel_bit_rate;
-#endif
             }
-#if 0 //RC 
-            context_ptr->extra_bits_gen -= (int64_t)previous_frame_bit_actual - (int64_t)context_ptr->high_level_rate_control_ptr->channel_bit_rate_per_frame;
-#endif
             if (parentpicture_control_set_ptr->hierarchical_levels > 1 && rate_control_layer_ptr->frame_same_distortion_min_qp_count > 10) {
                 rate_control_layer_ptr->previous_bit_constraint = (int64_t)rate_control_layer_ptr->channel_bit_rate;
                 rate_control_param_ptr->virtual_buffer_level = ((int64_t)context_ptr->virtual_buffer_size >> 1);
@@ -1940,7 +1827,7 @@ void frame_level_rc_feedback_picture_vbr(
         }
     }
 
-#if 1//VP9_RC_PRINTS
+#if RC_PRINTS
     if (parentpicture_control_set_ptr->temporal_layer_index == 0)
     {
         SVT_LOG("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%.0f\t%.0f\t%.0f\t%.0f\t%d\t%d\n",
@@ -1968,7 +1855,7 @@ void frame_level_rc_feedback_picture_vbr(
 
 
 }
-void high_level_rc_input_picture_cbr(
+void high_level_rc_input_picture_cvbr(
     PictureParentControlSet_t     *picture_control_set_ptr,
     SequenceControlSet_t          *sequence_control_set_ptr,
     EncodeContext_t               *encode_context_ptr,
@@ -2238,61 +2125,12 @@ void high_level_rc_input_picture_cbr(
                         if (ref_qp_table_index == previous_selected_ref_qp) {
                             hl_rate_control_histogram_ptr_temp->life_count--;
                         }
-#if RC_CLEAN_UP
                         hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = predict_bits(
                             encode_context_ptr,
                             hl_rate_control_histogram_ptr_temp,
                             ref_qp_index_temp,
                             area_in_pixel);
-#else
-                        if (hl_rate_control_histogram_ptr_temp->is_coded) {
-                            // If the frame is already coded, use the actual number of bits
-                            hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = hl_rate_control_histogram_ptr_temp->total_num_bits_coded;
-                        }
-                        else {
-                            rate_control_tables_ptr = &encode_context_ptr->rate_control_tables_array[ref_qp_index_temp];
-                            sad_bits_array_ptr = rate_control_tables_ptr->sad_bits_array[hl_rate_control_histogram_ptr_temp->temporal_layer_index];
-                            intra_sad_bits_array_ptr = rate_control_tables_ptr->intra_sad_bits_array[0];
-                            pred_bits_ref_qp = 0;
-                            num_of_full_sbs = 0;
 
-                            if (hl_rate_control_histogram_ptr_temp->slice_type == I_SLICE) {
-                                // Loop over block in the frame and calculated the predicted bits at reg QP
-                                unsigned i;
-                                uint32_t accum = 0;
-                                for (i = 0; i < NUMBER_OF_INTRA_SAD_INTERVALS; ++i)
-                                {
-                                    accum += (uint32_t)((uint32_t)hl_rate_control_histogram_ptr_temp->ois_distortion_histogram[i] * (uint32_t)intra_sad_bits_array_ptr[i]);
-                                }
-
-                                pred_bits_ref_qp = accum;
-                                num_of_full_sbs = hl_rate_control_histogram_ptr_temp->full_sb_count;
-                                hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] += pred_bits_ref_qp;
-                            }
-                            else {
-                                unsigned i;
-                                uint32_t accum = 0;
-                                uint32_t accum_intra = 0;
-                                for (i = 0; i < NUMBER_OF_SAD_INTERVALS; ++i)
-                                {
-                                    accum += (uint32_t)((uint32_t)hl_rate_control_histogram_ptr_temp->me_distortion_histogram[i] * (uint32_t)sad_bits_array_ptr[i]);
-                                    accum_intra += (uint32_t)((uint32_t)hl_rate_control_histogram_ptr_temp->ois_distortion_histogram[i] * (uint32_t)intra_sad_bits_array_ptr[i]);
-
-                                }
-                                if (accum > accum_intra * 3)
-                                    pred_bits_ref_qp = accum_intra;
-                                else
-                                    pred_bits_ref_qp = accum;
-                                num_of_full_sbs = hl_rate_control_histogram_ptr_temp->full_sb_count;
-                                hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] += pred_bits_ref_qp;
-                            }
-
-                            // Scale for in complete LCSs
-                            //  pred_bits_ref_qp is normalized based on the area because of the LCUs at the picture boundries
-                            hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] * (uint64_t)area_in_pixel / (num_of_full_sbs << 12);
-
-                        }
-#endif
                         high_level_rate_control_ptr->pred_bits_ref_qpPerSw[ref_qp_index] += hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp];
                         // Store the pred_bits_ref_qp for the first frame in the window to PCS
                         if (queue_entry_index_head_temp == queue_entry_index_temp2)
@@ -2372,67 +2210,12 @@ void high_level_rc_input_picture_cbr(
                         sequence_control_set_ptr->static_config.max_qp_allowed,
                         ref_qp_index_temp);
 
-#if RC_CLEAN_UP
                     hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = predict_bits(
                         encode_context_ptr,
                         hl_rate_control_histogram_ptr_temp,
                         ref_qp_index_temp,
                         area_in_pixel);
-#else
-                    hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = 0;
 
-                    if (hl_rate_control_histogram_ptr_temp->is_coded) {
-                        hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = hl_rate_control_histogram_ptr_temp->total_num_bits_coded;
-                    }
-                    else {
-                        rate_control_tables_ptr = &encode_context_ptr->rate_control_tables_array[ref_qp_index_temp];
-                        sad_bits_array_ptr = rate_control_tables_ptr->sad_bits_array[hl_rate_control_histogram_ptr_temp->temporal_layer_index];
-                        intra_sad_bits_array_ptr = rate_control_tables_ptr->intra_sad_bits_array[hl_rate_control_histogram_ptr_temp->temporal_layer_index];
-                        pred_bits_ref_qp = 0;
-
-                        num_of_full_sbs = 0;
-
-                        if (hl_rate_control_histogram_ptr_temp->slice_type == I_SLICE) {
-                            // Loop over block in the frame and calculated the predicted bits at reg QP
-
-                            {
-                                unsigned i;
-                                uint32_t accum = 0;
-                                for (i = 0; i < NUMBER_OF_INTRA_SAD_INTERVALS; ++i)
-                                {
-                                    accum += (uint32_t)(hl_rate_control_histogram_ptr_temp->ois_distortion_histogram[i] * intra_sad_bits_array_ptr[i]);
-                                }
-
-                                pred_bits_ref_qp = accum;
-                                num_of_full_sbs = hl_rate_control_histogram_ptr_temp->full_sb_count;
-                            }
-                            hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] += pred_bits_ref_qp;
-                        }
-
-                        else {
-                            unsigned i;
-                            uint32_t accum = 0;
-                            uint32_t accum_intra = 0;
-                            for (i = 0; i < NUMBER_OF_SAD_INTERVALS; ++i)
-                            {
-                                accum += (uint32_t)(hl_rate_control_histogram_ptr_temp->me_distortion_histogram[i] * sad_bits_array_ptr[i]);
-                                accum_intra += (uint32_t)(hl_rate_control_histogram_ptr_temp->ois_distortion_histogram[i] * intra_sad_bits_array_ptr[i]);
-
-                            }
-                            if (accum > accum_intra * 3)
-                                pred_bits_ref_qp = accum_intra;
-                            else
-                                pred_bits_ref_qp = accum;
-                            num_of_full_sbs = hl_rate_control_histogram_ptr_temp->full_sb_count;
-                            hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] += pred_bits_ref_qp;
-                        }
-
-                        // Scale for in complete
-                        //  pred_bits_ref_qp is normalized based on the area because of the LCUs at the picture boundries
-                        hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] * (uint64_t)area_in_pixel / (num_of_full_sbs << 12);
-
-                    }
-#endif
                     high_level_rate_control_ptr->pred_bits_ref_qpPerSw[ref_qp_index] += hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp];
                     // Store the pred_bits_ref_qp for the first frame in the window to PCS
                     //  if(encode_context_ptr->hl_rate_control_historgram_queue_head_index == queue_entry_index_temp2)
@@ -2535,7 +2318,7 @@ void high_level_rc_input_picture_cbr(
             }
         }
 #endif
-#if 0 //VP9_RC_PRINTS
+#if RC_PRINTS
         ////if (picture_control_set_ptr->slice_type == 2)
         {
             SVT_LOG("\nTID: %d\t", picture_control_set_ptr->temporal_layer_index);
@@ -2555,7 +2338,7 @@ void high_level_rc_input_picture_cbr(
     }
     eb_release_mutex(sequence_control_set_ptr->encode_context_ptr->rate_table_update_mutex);
 }
-void frame_level_rc_input_picture_cbr(
+void frame_level_rc_input_picture_cvbr(
     PictureControlSet_t               *picture_control_set_ptr,
     SequenceControlSet_t              *sequence_control_set_ptr,
     RateControlContext_t              *context_ptr,
@@ -2715,7 +2498,6 @@ void frame_level_rc_input_picture_cbr(
 
         picture_control_set_ptr->parent_pcs_ptr->sad_me = 0;
 
-#if 1
 
         HighLevelRateControlContext_t *high_level_rate_control_ptr = context_ptr->high_level_rate_control_ptr;
         EncodeContext_t               *encode_context_ptr = sequence_control_set_ptr->encode_context_ptr;
@@ -2825,61 +2607,13 @@ void frame_level_rc_input_picture_cbr(
                 if (ref_qp_table_index == previous_selected_ref_qp) {
                     hl_rate_control_histogram_ptr_temp->life_count--;
                 }
-#if RC_CLEAN_UP
+
                 hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = predict_bits(
                     encode_context_ptr,
                     hl_rate_control_histogram_ptr_temp,
                     ref_qp_index_temp,
                     area_in_pixel);
-#else
-                if (hl_rate_control_histogram_ptr_temp->is_coded) {
-                    // If the frame is already coded, use the actual number of bits
-                    hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = hl_rate_control_histogram_ptr_temp->total_num_bits_coded;
-                }
-                else {
-                    rate_control_tables_ptr = &encode_context_ptr->rate_control_tables_array[ref_qp_index_temp];
-                    sad_bits_array_ptr = rate_control_tables_ptr->sad_bits_array[hl_rate_control_histogram_ptr_temp->temporal_layer_index];
-                    intra_sad_bits_array_ptr = rate_control_tables_ptr->intra_sad_bits_array[0];
-                    pred_bits_ref_qp = 0;
-                    num_of_full_sbs = 0;
 
-                    if (hl_rate_control_histogram_ptr_temp->slice_type == I_SLICE) {
-                        // Loop over block in the frame and calculated the predicted bits at reg QP
-                        unsigned i;
-                        uint32_t accum = 0;
-                        for (i = 0; i < NUMBER_OF_INTRA_SAD_INTERVALS; ++i)
-                        {
-                            accum += (uint32_t)((uint32_t)hl_rate_control_histogram_ptr_temp->ois_distortion_histogram[i] * (uint32_t)intra_sad_bits_array_ptr[i]);
-                        }
-
-                        pred_bits_ref_qp = accum;
-                        num_of_full_sbs = hl_rate_control_histogram_ptr_temp->full_sb_count;
-                        hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] += pred_bits_ref_qp;
-                    }
-                    else {
-                        unsigned i;
-                        uint32_t accum = 0;
-                        uint32_t accum_intra = 0;
-                        for (i = 0; i < NUMBER_OF_SAD_INTERVALS; ++i)
-                        {
-                            accum += (uint32_t)((uint32_t)hl_rate_control_histogram_ptr_temp->me_distortion_histogram[i] * (uint32_t)sad_bits_array_ptr[i]);
-                            accum_intra += (uint32_t)((uint32_t)hl_rate_control_histogram_ptr_temp->ois_distortion_histogram[i] * (uint32_t)intra_sad_bits_array_ptr[i]);
-
-                        }
-                        if (accum > accum_intra * 3)
-                            pred_bits_ref_qp = accum_intra;
-                        else
-                            pred_bits_ref_qp = accum;
-                        num_of_full_sbs = hl_rate_control_histogram_ptr_temp->full_sb_count;
-                        hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] += pred_bits_ref_qp;
-                    }
-
-                    // Scale for in complete LCSs
-                    //  pred_bits_ref_qp is normalized based on the area because of the LCUs at the picture boundries
-                    hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] = hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp] * (uint64_t)rate_control_layer_ptr->area_in_pixel / (num_of_full_sbs << 12);
-
-                }
-#endif
                 high_level_rate_control_ptr->pred_bits_ref_qpPerSw[ref_qp_index] += hl_rate_control_histogram_ptr_temp->pred_bits_ref_qp[ref_qp_index_temp];
                 // Store the pred_bits_ref_qp for the first frame in the window to PCS
                 if (queue_entry_index_head_temp == queue_entry_index_temp2)
@@ -2927,24 +2661,6 @@ void frame_level_rc_input_picture_cbr(
             sequence_control_set_ptr->static_config.max_qp_allowed,
             (uint8_t)((int)picture_control_set_ptr->parent_pcs_ptr->best_pred_qp + delta_qp));
 
-#if 0//VP9_RC_PRINTS
-        // if (picture_control_set_ptr->slice_type == 2)
-        {
-            SVT_LOG("\nTID2: %d\t", picture_control_set_ptr->temporal_layer_index);
-            SVT_LOG("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t\n",
-                picture_control_set_ptr->picture_number,
-                picture_control_set_ptr->parent_pcs_ptr->best_pred_qp,
-                selected_ref_qp,
-                (int)picture_control_set_ptr->parent_pcs_ptr->targetBitsbest_pred_qp,
-                (int)high_level_rate_control_ptr->pred_bits_ref_qp_per_sw[selected_ref_qp - 1],
-                (int)high_level_rate_control_ptr->pred_bits_ref_qp_per_sw[selected_ref_qp],
-                (int)high_level_rate_control_ptr->pred_bits_ref_qp_per_sw[selected_ref_qp + 1],
-                (int)high_level_rate_control_ptr->bit_constraint_per_sw,
-                (int)bit_constraint_per_sw/*,
-                (int)high_level_rate_control_ptr->virtual_buffer_level*/);
-        }
-#endif
-#endif
 
         // if the pixture is an I slice, for now we set the QP as the QP of the previous frame
         if (picture_control_set_ptr->slice_type == I_SLICE) {
@@ -3145,7 +2861,7 @@ void frame_level_rc_input_picture_cbr(
     rate_control_layer_ptr->previous_calculated_frame_qp = rate_control_layer_ptr->calculated_frame_qp;
 }
 
-void frame_level_rc_feedback_picture_cbr(
+void frame_level_rc_feedback_picture_cvbr(
     PictureParentControlSet_t *parentpicture_control_set_ptr,
     SequenceControlSet_t      *sequence_control_set_ptr,
     RateControlContext_t      *context_ptr)
@@ -3325,10 +3041,7 @@ void frame_level_rc_feedback_picture_cbr(
             }
             if ((int64_t)parentpicture_control_set_ptr->target_bit_rate * 3 / 4 < (int64_t)(parentpicture_control_set_ptr->total_num_bits*context_ptr->frame_rate / (sequence_control_set_ptr->static_config.intra_period_length + 1)) >> RC_PRECISION) {
                 rate_control_param_ptr->previous_virtual_buffer_level += (int64_t)((parentpicture_control_set_ptr->total_num_bits*context_ptr->frame_rate / (sequence_control_set_ptr->static_config.intra_period_length + 1)) >> RC_PRECISION) - (int64_t)parentpicture_control_set_ptr->target_bit_rate * 3 / 4;
-                context_ptr->extra_bits_gen -= (int64_t)((parentpicture_control_set_ptr->total_num_bits*context_ptr->frame_rate / (sequence_control_set_ptr->static_config.intra_period_length + 1)) >> RC_PRECISION) - (int64_t)parentpicture_control_set_ptr->target_bit_rate * 3 / 4;
-#if RC_NO_EXTRA
                 context_ptr->extra_bits_gen = 0;
-#endif
             }
         }
 
@@ -3336,30 +3049,10 @@ void frame_level_rc_feedback_picture_cbr(
 
             uint64_t bit_changes_rate;
             // Updating virtual buffer level and it can be negative
-            if ((parentpicture_control_set_ptr->picture_number == rate_control_param_ptr->first_poc) &&
-                (parentpicture_control_set_ptr->slice_type == I_SLICE) &&
-                (rate_control_param_ptr->last_gop == EB_FALSE) &&
-                sequence_control_set_ptr->static_config.intra_period_length != -1) {
-                rate_control_param_ptr->virtual_buffer_level =
-                    (int64_t)rate_control_param_ptr->previous_virtual_buffer_level;
-            }
-            else {
-                rate_control_param_ptr->virtual_buffer_level =
-                    (int64_t)rate_control_param_ptr->previous_virtual_buffer_level +
-                    (int64_t)previous_frame_bit_actual - (int64_t)rate_control_layer_ptr->channel_bit_rate;
-#if 1//!RC 
-                context_ptr->extra_bits_gen -= (int64_t)previous_frame_bit_actual - (int64_t)rate_control_layer_ptr->channel_bit_rate;
-#endif
-            }
-#if 0//RC 
-            context_ptr->extra_bits_gen -= (int64_t)previous_frame_bit_actual - (int64_t)context_ptr->high_level_rate_control_ptr->channel_bit_rate_per_frame;
-#endif
-#if RC_NO_EXTRA
             context_ptr->extra_bits_gen = 0;
             rate_control_param_ptr->virtual_buffer_level =
                 (int64_t)rate_control_param_ptr->previous_virtual_buffer_level +
                 (int64_t)previous_frame_bit_actual - (int64_t)context_ptr->high_level_rate_control_ptr->channel_bit_rate_per_frame;
-#endif
             if (parentpicture_control_set_ptr->hierarchical_levels > 1 && rate_control_layer_ptr->frame_same_distortion_min_qp_count > 10) {
                 rate_control_layer_ptr->previous_bit_constraint = (int64_t)rate_control_layer_ptr->channel_bit_rate;
                 rate_control_param_ptr->virtual_buffer_level = ((int64_t)context_ptr->virtual_buffer_size >> 1);
@@ -3419,13 +3112,10 @@ void frame_level_rc_feedback_picture_cbr(
             context_ptr->extra_bits += extra_bits;
 
         }
-#if RC_NO_EXTRA
         context_ptr->extra_bits = 0;
-#endif
-
     }
 
-#if VP9_RC_PRINTS
+#if RC_PRINTS
     ///if (parentpicture_control_set_ptr->temporal_layer_index == 0)
     {
         SVT_LOG("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%.0f\t%.0f\t%.0f\t%.0f\t%d\t%d\n",
@@ -3621,7 +3311,7 @@ void init_rc(
             context_ptr->frames_in_interval[5] ++;
         total_frame_in_interval--;
     }
-    if (sequence_control_set_ptr->static_config.rate_control_mode == 1) { // VBR
+    if (sequence_control_set_ptr->static_config.rate_control_mode == 2) { // VBR
         context_ptr->virtual_buffer_size = (((uint64_t)sequence_control_set_ptr->static_config.target_bit_rate * 3) << RC_PRECISION) / (context_ptr->frame_rate);
         context_ptr->rate_average_periodin_frames = (uint64_t)sequence_control_set_ptr->static_config.intra_period_length + 1;
         context_ptr->virtual_buffer_level_initial_value = context_ptr->virtual_buffer_size >> 1;
@@ -3632,7 +3322,7 @@ void init_rc(
         context_ptr->base_layer_frames_avg_qp = sequence_control_set_ptr->qp;
         context_ptr->base_layer_intra_frames_avg_qp = sequence_control_set_ptr->qp;
     }
-    else { // CBR
+    else if(sequence_control_set_ptr->static_config.rate_control_mode == 3) {
         context_ptr->virtual_buffer_size = ((uint64_t)sequence_control_set_ptr->static_config.target_bit_rate);// vbv_buf_size);
         context_ptr->rate_average_periodin_frames = (uint64_t)sequence_control_set_ptr->static_config.intra_period_length + 1;
         context_ptr->virtual_buffer_level_initial_value = context_ptr->virtual_buffer_size >> 1;
@@ -4219,22 +3909,20 @@ void* rate_control_kernel(void *input_ptr)
             {
                 picture_control_set_ptr->parent_pcs_ptr->intra_selected_org_qp = 0;
                 // High level RC
-                if (sequence_control_set_ptr->static_config.rate_control_mode == 1)
+                if (sequence_control_set_ptr->static_config.rate_control_mode == 2)
                     high_level_rc_input_picture_vbr(
                         picture_control_set_ptr->parent_pcs_ptr,
                         sequence_control_set_ptr,
                         sequence_control_set_ptr->encode_context_ptr,
                         context_ptr,
                         context_ptr->high_level_rate_control_ptr);
-                else
-                    high_level_rc_input_picture_cbr(
+                else if (sequence_control_set_ptr->static_config.rate_control_mode == 3)
+                    high_level_rc_input_picture_cvbr(
                         picture_control_set_ptr->parent_pcs_ptr,
                         sequence_control_set_ptr,
                         sequence_control_set_ptr->encode_context_ptr,
                         context_ptr,
                         context_ptr->high_level_rate_control_ptr);
-
-
             }
 
             // Frame level RC. Find the ParamPtr for the current GOP
@@ -4354,7 +4042,7 @@ void* rate_control_kernel(void *input_ptr)
             else {
                 picture_control_set_ptr->picture_qp = rate_control_get_quantizer(rc_model_ptr, picture_control_set_ptr->parent_pcs_ptr);
                 // ***Rate Control***
-                if (sequence_control_set_ptr->static_config.rate_control_mode == 1) {
+                if (sequence_control_set_ptr->static_config.rate_control_mode == 2) {
                     frame_level_rc_input_picture_vbr(
                         picture_control_set_ptr,
                         sequence_control_set_ptr,
@@ -4370,9 +4058,9 @@ void* rate_control_kernel(void *input_ptr)
                         prev_gop_rate_control_param_ptr,
                         next_gop_rate_control_param_ptr);
                 }
-                else {
+                else if (sequence_control_set_ptr->static_config.rate_control_mode == 3) {
 
-                    frame_level_rc_input_picture_cbr(
+                    frame_level_rc_input_picture_cvbr(
                         picture_control_set_ptr,
                         sequence_control_set_ptr,
                         context_ptr,
@@ -4534,13 +4222,13 @@ void* rate_control_kernel(void *input_ptr)
                 high_level_rc_feed_back_picture(
                     parentpicture_control_set_ptr,
                     sequence_control_set_ptr);
-                if (sequence_control_set_ptr->static_config.rate_control_mode == 1)
+                if (sequence_control_set_ptr->static_config.rate_control_mode == 2)
                     frame_level_rc_feedback_picture_vbr(
                         parentpicture_control_set_ptr,
                         sequence_control_set_ptr,
                         context_ptr);
-                else
-                    frame_level_rc_feedback_picture_cbr(
+                else if (sequence_control_set_ptr->static_config.rate_control_mode == 3)
+                    frame_level_rc_feedback_picture_cvbr(
                         parentpicture_control_set_ptr,
                         sequence_control_set_ptr,
                         context_ptr);

@@ -2176,6 +2176,10 @@ void SetParamBasedOnInput(
  #if DISABLE_128_SB_FOR_SUB_720
     sequence_control_set_ptr->static_config.super_block_size       = (sequence_control_set_ptr->static_config.enc_mode <= ENC_M2 && sequence_control_set_ptr->input_resolution >= INPUT_SIZE_1080i_RANGE) ? 128 : 64;
 #endif
+#if RC
+    sequence_control_set_ptr->static_config.super_block_size       = (sequence_control_set_ptr->static_config.rate_control_mode > 1) ? 64 : sequence_control_set_ptr->static_config.super_block_size;
+    sequence_control_set_ptr->static_config.hierarchical_levels    = (sequence_control_set_ptr->static_config.rate_control_mode > 1) ?  3 : sequence_control_set_ptr->static_config.hierarchical_levels;
+#endif
 }
 
 void CopyApiFromApp(
@@ -2617,8 +2621,8 @@ static EbErrorType VerifySettings(
         return_error = EB_ErrorBadParameter;
     }
 #if RC
-    if (config->rate_control_mode > 2) {
-        SVT_LOG("Error Instance %u: The rate control mode must be [0 - 2] \n", channelNumber + 1);
+    if (config->rate_control_mode > 3) {
+        SVT_LOG("Error Instance %u: The rate control mode must be [0 - 3] \n", channelNumber + 1);
         return_error = EB_ErrorBadParameter;
     }
 #else
@@ -2898,7 +2902,11 @@ static void PrintLibParams(
         SVT_LOG("\nSVT [config]: FrameRate / Gop Size\t\t\t\t\t\t: %d / %d ", config->frame_rate > 1000 ? config->frame_rate >> 16 : config->frame_rate, config->intra_period_length + 1);
     SVT_LOG("\nSVT [config]: HierarchicalLevels / BaseLayerSwitchMode / PredStructure\t\t: %d / %d / %d ", config->hierarchical_levels, config->base_layer_switch_mode, config->pred_structure);
     if (config->rate_control_mode == 1)
+        SVT_LOG("\nSVT [config]: RCMode / TargetBitrate / LookaheadDistance / SceneChange\t\t: ABR / %d / %d / %d ", config->target_bit_rate, config->look_ahead_distance, config->scene_change_detection);
+    else if (config->rate_control_mode == 2)
         SVT_LOG("\nSVT [config]: RCMode / TargetBitrate / LookaheadDistance / SceneChange\t\t: VBR / %d / %d / %d ", config->target_bit_rate, config->look_ahead_distance, config->scene_change_detection);
+    else if (config->rate_control_mode == 3)
+        SVT_LOG("\nSVT [config]: RCMode / TargetBitrate / LookaheadDistance / SceneChange\t\t: Constraint VBR / %d / %d / %d ", config->target_bit_rate, config->look_ahead_distance, config->scene_change_detection);
     else
         SVT_LOG("\nSVT [config]: BRC Mode / QP  / LookaheadDistance / SceneChange\t\t\t: CQP / %d / %d / %d ", scs->qp, config->look_ahead_distance, config->scene_change_detection);
 #ifdef DEBUG_BUFFERS

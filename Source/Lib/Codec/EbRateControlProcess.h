@@ -25,7 +25,7 @@
 #if OVERSHOOT_STAT_PRINT
 #define CODED_FRAMES_STAT_QUEUE_MAX_DEPTH   10000
 #endif
-
+#define RC_PRINTS               0
 #define ADAPTIVE_PERCENTAGE 1
 #define     RC_UPDATE_TARGET_RATE           1
 

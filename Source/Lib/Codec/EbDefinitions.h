@@ -34,13 +34,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define RC                                         1
-#define RC_FEEDBACK                 1
-#define RC_CLEAN_UP                1
-#if RC
-#define VP9_RC_PRINTS               1
-#define RC_NO_EXTRA                 1
-#endif
+
      //Mode definition : Only one mode should be ON at a time
 
 #define MR_MODE                                         0
@@ -170,7 +164,10 @@ extern "C" {
 #define TWO_FAST_LOOP                                   1
 #define ENABLE_EOB_ZERO_CHECK                           1
 #define DISABLE_128_SB_FOR_SUB_720                      1
-
+#define RC                                              1 // VBR RAte control integrated from SVT-VP9
+#if RC
+#define RC_FEEDBACK                                     1 // Feedback from previous base layer is received before starting the next base layer frame
+#endif
 /********************************************************/
 /****************** Pre-defined Values ******************/
 /********************************************************/
