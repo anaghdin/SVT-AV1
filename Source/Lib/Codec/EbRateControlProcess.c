@@ -490,7 +490,7 @@ void high_level_rc_input_picture_vbr(
 
     tables_updated = sequence_control_set_ptr->encode_context_ptr->rate_control_tables_array_updated;
     picture_control_set_ptr->percentage_updated = EB_FALSE;
-
+    printf("%d\n", encode_context_ptr->hl_rate_control_historgram_queue_head_index);
     if (sequence_control_set_ptr->static_config.look_ahead_distance != 0) {
 
         // Increamenting the head of the hl_rate_control_historgram_queue and clean up the entores
@@ -1915,7 +1915,7 @@ void high_level_rc_input_picture_cvbr(
 
     tables_updated = sequence_control_set_ptr->encode_context_ptr->rate_control_tables_array_updated;
     picture_control_set_ptr->percentage_updated = EB_FALSE;
-
+    printf("%d\n", encode_context_ptr->hl_rate_control_historgram_queue_head_index);
     if (sequence_control_set_ptr->static_config.look_ahead_distance != 0) {
 
         // Increamenting the head of the hl_rate_control_historgram_queue and clean up the entores
@@ -2518,18 +2518,12 @@ void frame_level_rc_input_picture_cvbr(
         uint32_t                     ref_qp_index_temp;
         uint32_t                     ref_qp_table_index;
 
-        uint32_t                     num_of_full_sbs;
         uint32_t                     qp_search_min;
         uint32_t                     qp_search_max;
         int32_t                      qp_step = 1;
         EbBool                      best_qp_found;
 
         uint64_t                     bit_constraint_per_sw = 0;
-
-        RateControlTables_t           *rate_control_tables_ptr;
-        EbBitNumber                 *sad_bits_array_ptr;
-        EbBitNumber                 *intra_sad_bits_array_ptr;
-        uint32_t                     pred_bits_ref_qp;
         EbBool                      end_of_sequence_flag = EB_TRUE;
 
 

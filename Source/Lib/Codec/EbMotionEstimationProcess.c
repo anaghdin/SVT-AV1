@@ -643,11 +643,11 @@ void* MotionEstimationKernel(void *input_ptr)
 
                             picture_control_set_ptr->me_distortion_histogram[sadIntervalIndex] ++;
 
-                            uint32_t                       bestOisCuIndex = 0;
 #if RC 
 
                             intra_sad_interval_index = picture_control_set_ptr->variance[sb_index][ME_TIER_ZERO_PU_64x64] >> 4;
 #else
+                            uint32_t                       bestOisCuIndex = 0;
                             //DOUBLE CHECK THIS PIECE OF CODE
                             intra_sad_interval_index = (uint32_t)
                                 (((picture_control_set_ptr->ois_cu32_cu16_results[sb_index]->sorted_ois_candidate[1][bestOisCuIndex].distortion +
@@ -677,7 +677,6 @@ void* MotionEstimationKernel(void *input_ptr)
                 }
             }
             else {
-                uint32_t                       bestOisCuIndex = 0;
 
 
                 for (yLcuIndex = yLcuStartIndex; yLcuIndex < yLcuEndIndex; ++yLcuIndex) {
@@ -699,6 +698,7 @@ void* MotionEstimationKernel(void *input_ptr)
                             intra_sad_interval_index = picture_control_set_ptr->variance[sb_index][ME_TIER_ZERO_PU_64x64] >> 4;
 #else
                             //DOUBLE CHECK THIS PIECE OF CODE
+                            uint32_t                       bestOisCuIndex = 0;
 
                             intra_sad_interval_index = (uint32_t)
                                 (((picture_control_set_ptr->ois_cu32_cu16_results[sb_index]->sorted_ois_candidate[1][bestOisCuIndex].distortion +

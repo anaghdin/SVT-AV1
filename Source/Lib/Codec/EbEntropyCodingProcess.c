@@ -528,7 +528,9 @@ void* EntropyCodingKernel(void *input_ptr)
     uint32_t                                   yLcuIndex;
     uint32_t                                   sb_origin_x;
     uint32_t                                   sb_origin_y;
+#if !RC   
     EbBool                                  lastLcuFlag;
+#endif    
     uint32_t                                   picture_width_in_sb;
     // Variables
     EbBool                                  initialProcessCall;
@@ -541,8 +543,9 @@ void* EntropyCodingKernel(void *input_ptr)
         encDecResultsPtr = (EncDecResults_t*)encDecResultsWrapperPtr->object_ptr;
         picture_control_set_ptr = (PictureControlSet_t*)encDecResultsPtr->pictureControlSetWrapperPtr->object_ptr;
         sequence_control_set_ptr = (SequenceControlSet_t*)picture_control_set_ptr->sequence_control_set_wrapper_ptr->object_ptr;
+#if !RC   
         lastLcuFlag = EB_FALSE;
-
+#endif
         // SB Constants
 
         sb_sz = (uint8_t)sequence_control_set_ptr->sb_size_pix;
@@ -581,8 +584,9 @@ void* EntropyCodingKernel(void *input_ptr)
                     sb_origin_y = yLcuIndex << lcuSizeLog2;
                     context_ptr->sb_origin_x = sb_origin_x;
                     context_ptr->sb_origin_y = sb_origin_y;
+#if !RC   
                     lastLcuFlag = (sb_index == sequence_control_set_ptr->sb_tot_cnt - 1) ? EB_TRUE : EB_FALSE;
-
+#endif
 #if TILES 
                     if (sb_index == 0)
                         av1_reset_loop_restoration(picture_control_set_ptr);
@@ -742,8 +746,9 @@ void* EntropyCodingKernel(void *input_ptr)
                              sb_origin_y = yLcuIndex << lcuSizeLog2;
                              context_ptr->sb_origin_x = sb_origin_x;
                              context_ptr->sb_origin_y = sb_origin_y;
+#if !RC   
                              lastLcuFlag = (sb_index == sequence_control_set_ptr->sb_tot_cnt - 1) ? EB_TRUE : EB_FALSE;
-                            
+#endif                            
                              // Configure the LCU
                              EntropyCodingConfigureLcu(
                                  context_ptr,
