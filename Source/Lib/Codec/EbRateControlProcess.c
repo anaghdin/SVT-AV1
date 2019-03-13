@@ -490,7 +490,6 @@ void high_level_rc_input_picture_vbr(
 
     tables_updated = sequence_control_set_ptr->encode_context_ptr->rate_control_tables_array_updated;
     picture_control_set_ptr->percentage_updated = EB_FALSE;
-    printf("%d\n", encode_context_ptr->hl_rate_control_historgram_queue_head_index);
     if (sequence_control_set_ptr->static_config.look_ahead_distance != 0) {
 
         // Increamenting the head of the hl_rate_control_historgram_queue and clean up the entores
@@ -1915,7 +1914,6 @@ void high_level_rc_input_picture_cvbr(
 
     tables_updated = sequence_control_set_ptr->encode_context_ptr->rate_control_tables_array_updated;
     picture_control_set_ptr->percentage_updated = EB_FALSE;
-    printf("%d\n", encode_context_ptr->hl_rate_control_historgram_queue_head_index);
     if (sequence_control_set_ptr->static_config.look_ahead_distance != 0) {
 
         // Increamenting the head of the hl_rate_control_historgram_queue and clean up the entores
