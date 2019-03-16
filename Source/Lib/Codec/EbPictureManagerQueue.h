@@ -51,9 +51,17 @@ extern "C" {
         EbBool                         is_used_as_reference_flag;
 
         uint64_t                          rcGroupIndex;
+
 #if RC_FEEDBACK
         EbBool                         feedback_arrived;
 #endif 
+
+#if BASE_LAYER_REF
+        EB_SLICE                        slice_type;
+        uint8_t                         temporal_layer_index;
+        uint64_t                        last_islice_picture_number;
+#endif
+
     } ReferenceQueueEntry_t;
 
     /************************************************
