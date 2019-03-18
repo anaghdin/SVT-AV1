@@ -600,13 +600,13 @@ void* EntropyCodingKernel(void *input_ptr)
 #if RC            
                     sb_ptr->total_bits = 0;
                     uint32_t prev_pos = sb_index ? picture_control_set_ptr->entropy_coder_ptr->ecWriter.ec.offs: 0;//residual_bc.pos
-                    EbPictureBufferDesc_t *coeffPicturePtr = sb_ptr->quantized_coeff;
+                    EbPictureBufferDesc_t *coeff_picture_ptr = sb_ptr->quantized_coeff;
                     write_sb(
                         context_ptr,
                         sb_ptr,
                         picture_control_set_ptr,
                         picture_control_set_ptr->entropy_coder_ptr,
-                        coeffPicturePtr);
+                        coeff_picture_ptr);
                     sb_ptr->total_bits = (picture_control_set_ptr->entropy_coder_ptr->ecWriter.ec.offs - prev_pos) << 3;
                     picture_control_set_ptr->parent_pcs_ptr->quantized_coeff_num_bits += sb_ptr->total_bits;
 #else
@@ -759,13 +759,13 @@ void* EntropyCodingKernel(void *input_ptr)
 #if RC
                              sb_ptr->total_bits = 0;
                              uint32_t prev_pos = sb_index ? picture_control_set_ptr->entropy_coder_ptr->ecWriter.ec.offs : 0;//residual_bc.pos
-                             EbPictureBufferDesc_t *coeffPicturePtr = sb_ptr->quantized_coeff;
+                             EbPictureBufferDesc_t *coeff_picture_ptr = sb_ptr->quantized_coeff;
                              write_sb(
                                  context_ptr,
                                  sb_ptr,
                                  picture_control_set_ptr,
                                  picture_control_set_ptr->entropy_coder_ptr,
-                                 coeffPicturePtr);
+                                 coeff_picture_ptr);
                              sb_ptr->total_bits = (picture_control_set_ptr->entropy_coder_ptr->ecWriter.ec.offs - prev_pos) << 3;
                              picture_control_set_ptr->parent_pcs_ptr->quantized_coeff_num_bits += sb_ptr->total_bits;
 #else

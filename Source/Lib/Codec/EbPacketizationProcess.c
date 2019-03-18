@@ -143,15 +143,14 @@ void update_rc_rate_tables(
                     if (sequence_control_set_ptr->input_resolution < INPUT_SIZE_4K_RANGE) {
                         for (sad_interval_index = 0; sad_interval_index < NUMBER_OF_INTRA_SAD_INTERVALS; sad_interval_index++) {
 
-                            if (count[sad_interval_index] > 5) {
+                            if (count[sad_interval_index] > 5) 
                                 weight = 8;
-                            }
-                            else if (count[sad_interval_index] > 1) {
+                            else if (count[sad_interval_index] > 1) 
                                 weight = 5;
-                            }
-                            else if (count[sad_interval_index] == 1) {
+                            
+                            else if (count[sad_interval_index] == 1) 
                                 weight = 2;
-                            }
+                            
                             if (count[sad_interval_index] > 0) {
                                 sadBits[sad_interval_index] /= count[sad_interval_index];
                                 sad_bits_ref_dequant = sadBits[sad_interval_index] * ref_qindex_dequant;
@@ -169,15 +168,12 @@ void update_rc_rate_tables(
                     else {
                         for (sad_interval_index = 0; sad_interval_index < NUMBER_OF_INTRA_SAD_INTERVALS; sad_interval_index++) {
 
-                            if (count[sad_interval_index] > 10) {
+                            if (count[sad_interval_index] > 10) 
                                 weight = 8;
-                            }
-                            else if (count[sad_interval_index] > 5) {
+                            else if (count[sad_interval_index] > 5) 
                                 weight = 5;
-                            }
-                            else if (count[sad_interval_index] >= 1) {
+                            else if (count[sad_interval_index] >= 1) 
                                 weight = 1;
-                            }
                             if (count[sad_interval_index] > 0) {
                                 sadBits[sad_interval_index] /= count[sad_interval_index];
                                 sad_bits_ref_dequant = sadBits[sad_interval_index] * ref_qindex_dequant;
@@ -200,15 +196,12 @@ void update_rc_rate_tables(
                     if (sequence_control_set_ptr->input_resolution < INPUT_SIZE_4K_RANGE) {
                         for (sad_interval_index = 0; sad_interval_index < NUMBER_OF_SAD_INTERVALS; sad_interval_index++) {
 
-                            if (count[sad_interval_index] > 5) {
+                            if (count[sad_interval_index] > 5) 
                                 weight = 8;
-                            }
-                            else if (count[sad_interval_index] > 1) {
+                            else if (count[sad_interval_index] > 1) 
                                 weight = 5;
-                            }
-                            else if (count[sad_interval_index] == 1) {
+                            else if (count[sad_interval_index] == 1) 
                                 weight = 1;
-                            }
 
                             if (count[sad_interval_index] > 0) {
                                 sadBits[sad_interval_index] /= count[sad_interval_index];
@@ -226,15 +219,12 @@ void update_rc_rate_tables(
                     }
                     else {
                         for (sad_interval_index = 0; sad_interval_index < NUMBER_OF_SAD_INTERVALS; sad_interval_index++) {
-                            if (count[sad_interval_index] > 10) {
+                            if (count[sad_interval_index] > 10) 
                                 weight = 7;
-                            }
-                            else if (count[sad_interval_index] > 5) {
+                            else if (count[sad_interval_index] > 5) 
                                 weight = 5;
-                            }
-                            else if (sad_interval_index > ((NUMBER_OF_SAD_INTERVALS >> 1) - 1) && count[sad_interval_index] > 1) {
+                            else if (sad_interval_index > ((NUMBER_OF_SAD_INTERVALS >> 1) - 1) && count[sad_interval_index] > 1) 
                                 weight = 1;
-                            }
 
                             if (count[sad_interval_index] > 0) {
                                 sadBits[sad_interval_index] /= count[sad_interval_index];
@@ -253,16 +243,6 @@ void update_rc_rate_tables(
 
                 }
             }
-            //if (picture_control_set_ptr->temporalLayerIndex == 0) {
-            //    qp_index = 40;
-            //    SVT_LOG("UPDATE: %d\t%d\t%d\t%d\n", picture_control_set_ptr->pictureNumber, picture_control_set_ptr->pictureQp, ref_qindex_dequant, picture_control_set_ptr->ParentPcsPtr->cpi->y_dequant[vp9_quantizer_to_qindex(qp_index)][1]);
-            //    
-            //    for (sad_interval_index = 0; sad_interval_index < NUMBER_OF_INTRA_SAD_INTERVALS; sad_interval_index++) {
-
-            //        SVT_LOG("%d\t%d\n", sad_interval_index, encodecontext_ptr->rateControlTablesArray[qp_index].sad_bits_array[picture_control_set_ptr->temporalLayerIndex][sad_interval_index]);
-            //    }
-            //}
-
             eb_release_mutex(encode_context_ptr->rate_table_update_mutex);
         }
     }
