@@ -2507,7 +2507,7 @@ static EbErrorType VerifySettings(
         return_error = EB_ErrorBadParameter;
     }
 #else
-    if (config->hierarchical_levels != 3 ) {
+    if (config->hierarchical_levels != 3) {
         SVT_LOG("Error instance %u: Hierarchical Levels supported [3]\n", channelNumber + 1);
         return_error = EB_ErrorBadParameter;
     }
@@ -2637,6 +2637,12 @@ static EbErrorType VerifySettings(
 #else
     if (config->rate_control_mode > 1) {
         SVT_LOG("Error Instance %u: The rate control mode must be [0 - 1] \n", channelNumber + 1);
+        return_error = EB_ErrorBadParameter;
+    }
+#endif
+#if RC
+    if ((config->rate_control_mode == 3|| config->rate_control_mode == 2) && config->look_ahead_distance != config->intra_period_length) {
+        SVT_LOG("Error Instance %u: The rate control mode 2/3 LAD must be equal to IntraPeriod \n", channelNumber + 1);
         return_error = EB_ErrorBadParameter;
     }
 #endif
