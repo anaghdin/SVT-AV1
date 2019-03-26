@@ -142,15 +142,12 @@ void update_rc_rate_tables(
                 if (picture_control_set_ptr->slice_type == I_SLICE) {
                     if (sequence_control_set_ptr->input_resolution < INPUT_SIZE_4K_RANGE) {
                         for (sad_interval_index = 0; sad_interval_index < NUMBER_OF_INTRA_SAD_INTERVALS; sad_interval_index++) {
-
                             if (count[sad_interval_index] > 5)
                                 weight = 8;
                             else if (count[sad_interval_index] > 1)
                                 weight = 5;
-
                             else if (count[sad_interval_index] == 1)
                                 weight = 2;
-
                             if (count[sad_interval_index] > 0) {
                                 sadBits[sad_interval_index] /= count[sad_interval_index];
                                 sad_bits_ref_dequant = sadBits[sad_interval_index] * ref_qindex_dequant;
@@ -167,7 +164,6 @@ void update_rc_rate_tables(
                     }
                     else {
                         for (sad_interval_index = 0; sad_interval_index < NUMBER_OF_INTRA_SAD_INTERVALS; sad_interval_index++) {
-
                             if (count[sad_interval_index] > 10)
                                 weight = 8;
                             else if (count[sad_interval_index] > 5)
@@ -185,24 +181,19 @@ void update_rc_rate_tables(
                                     encode_context_ptr->rate_control_tables_array[qp_index].intra_sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index] =
                                         MIN((uint16_t)encode_context_ptr->rate_control_tables_array[qp_index].intra_sad_bits_array[picture_control_set_ptr->temporal_layer_index][sad_interval_index], (uint16_t)((1 << 15) - 1));
                                 }
-
                             }
                         }
                     }
-
                 }
                 else {
-
                     if (sequence_control_set_ptr->input_resolution < INPUT_SIZE_4K_RANGE) {
                         for (sad_interval_index = 0; sad_interval_index < NUMBER_OF_SAD_INTERVALS; sad_interval_index++) {
-
                             if (count[sad_interval_index] > 5)
                                 weight = 8;
                             else if (count[sad_interval_index] > 1)
                                 weight = 5;
                             else if (count[sad_interval_index] == 1)
                                 weight = 1;
-
                             if (count[sad_interval_index] > 0) {
                                 sadBits[sad_interval_index] /= count[sad_interval_index];
                                 sad_bits_ref_dequant = sadBits[sad_interval_index] * ref_qindex_dequant;
@@ -225,7 +216,6 @@ void update_rc_rate_tables(
                                 weight = 5;
                             else if (sad_interval_index > ((NUMBER_OF_SAD_INTERVALS >> 1) - 1) && count[sad_interval_index] > 1)
                                 weight = 1;
-
                             if (count[sad_interval_index] > 0) {
                                 sadBits[sad_interval_index] /= count[sad_interval_index];
                                 sad_bits_ref_dequant = sadBits[sad_interval_index] * ref_qindex_dequant;
@@ -240,7 +230,6 @@ void update_rc_rate_tables(
                             }
                         }
                     }
-
                 }
             }
             eb_release_mutex(encode_context_ptr->rate_table_update_mutex);

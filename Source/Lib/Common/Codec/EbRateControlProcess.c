@@ -67,9 +67,7 @@ void rate_control_layer_reset(
                 total_frame_in_interval += picture_control_set_ptr->parent_pcs_ptr->frames_in_interval[temporal_layer_index];
                 sum_bits_per_sw += picture_control_set_ptr->parent_pcs_ptr->bits_per_sw_per_layer[temporal_layer_index];
             }
-#if ADAPTIVE_PERCENTAGE
             rate_control_layer_ptr->target_bit_rate = picture_control_set_ptr->parent_pcs_ptr->target_bit_rate* picture_control_set_ptr->parent_pcs_ptr->bits_per_sw_per_layer[rate_control_layer_ptr->temporal_index] / sum_bits_per_sw;
-#endif
         }
     }
 
@@ -80,14 +78,11 @@ void rate_control_layer_reset(
         switch (picture_control_set_ptr->parent_pcs_ptr->hierarchical_levels) {
         case 0:
             break;
-
         case 1:
             if (sequence_control_set_ptr->static_config.intra_period_length == -1) {
                 rate_control_layer_ptr->frame_rate = rate_control_layer_ptr->frame_rate >> 1;
             }
-
             break;
-
         case 2:
             if (rate_control_layer_ptr->temporal_index == 0) {
                 rate_control_layer_ptr->frame_rate = rate_control_layer_ptr->frame_rate >> 2;
@@ -96,7 +91,6 @@ void rate_control_layer_reset(
                 rate_control_layer_ptr->frame_rate = rate_control_layer_ptr->frame_rate >> (3 - rate_control_layer_ptr->temporal_index);
             }
             break;
-
         case 3:
             if (rate_control_layer_ptr->temporal_index == 0) {
                 rate_control_layer_ptr->frame_rate = rate_control_layer_ptr->frame_rate >> 3;
@@ -104,7 +98,6 @@ void rate_control_layer_reset(
             else {
                 rate_control_layer_ptr->frame_rate = rate_control_layer_ptr->frame_rate >> (4 - rate_control_layer_ptr->temporal_index);
             }
-
             break;
         case 4:
             if (rate_control_layer_ptr->temporal_index == 0) {
@@ -113,7 +106,6 @@ void rate_control_layer_reset(
             else {
                 rate_control_layer_ptr->frame_rate = rate_control_layer_ptr->frame_rate >> (5 - rate_control_layer_ptr->temporal_index);
             }
-
             break;
         case 5:
             if (rate_control_layer_ptr->temporal_index == 0) {
@@ -122,10 +114,10 @@ void rate_control_layer_reset(
             else {
                 rate_control_layer_ptr->frame_rate = rate_control_layer_ptr->frame_rate >> (6 - rate_control_layer_ptr->temporal_index);
             }
-
             break;
 
         default:
+            printf("ERROR: hierarchical_levels not supported\n");
             break;
         }
     }
@@ -160,16 +152,11 @@ void rate_control_layer_reset(
     rate_control_layer_ptr->alpha = 1 << (RC_PRECISION - 1);
     {
         if (!was_used) {
-
-
             rate_control_layer_ptr->same_distortion_count = 0;
-
             rate_control_layer_ptr->k_coeff = 3 << RC_PRECISION;
             rate_control_layer_ptr->previous_k_coeff = 3 << RC_PRECISION;
-
             rate_control_layer_ptr->c_coeff = (rate_control_layer_ptr->channel_bit_rate << (2 * RC_PRECISION)) / picture_area_in_pixel / CCOEFF_INIT_FACT;
             rate_control_layer_ptr->previous_c_coeff = (rate_control_layer_ptr->channel_bit_rate << (2 * RC_PRECISION)) / picture_area_in_pixel / CCOEFF_INIT_FACT;
-
             // These are for handling Pred structure 2, when for higher temporal layer, frames can arrive in different orders
             // They should be modifed in a way that gets these from previous layers
             rate_control_layer_ptr->previous_frame_qp = 32;
@@ -195,17 +182,14 @@ void rate_control_layer_reset_part2(
     RateControlLayerContext_t *rate_control_layer_ptr,
     PictureControlSet_t       *picture_control_set_ptr)
 {
-
     // update this based on temporal layers
     rate_control_layer_ptr->max_qp = (uint32_t)CLIP3(0, 63, (int32_t)context_ptr->qp_scaling_map[rate_control_layer_ptr->temporal_index][picture_control_set_ptr->picture_qp]);
-
     // These are for handling Pred structure 2, when for higher temporal layer, frames can arrive in different orders
     // They should be modifed in a way that gets these from previous layers
     rate_control_layer_ptr->previous_frame_qp = rate_control_layer_ptr->max_qp;
     rate_control_layer_ptr->previous_frame_average_qp = rate_control_layer_ptr->max_qp;
     rate_control_layer_ptr->previous_calculated_frame_qp = rate_control_layer_ptr->max_qp;
     rate_control_layer_ptr->calculated_frame_qp = rate_control_layer_ptr->max_qp;
-
 }
 
 EbErrorType high_level_rate_control_context_ctor(
@@ -451,9 +435,7 @@ void high_level_rc_input_picture_vbr(
     uint64_t                     min_la_bit_distance;
     uint32_t                     selected_ref_qp_table_index;
     uint32_t                     selected_ref_qp;
-#if RC_UPDATE_TARGET_RATE
     uint32_t                     selected_org_ref_qp;
-#endif
     uint32_t                     previous_selected_ref_qp = encode_context_ptr->previous_selected_ref_qp;
     uint64_t                     max_coded_poc = encode_context_ptr->max_coded_poc;
     uint32_t                     max_coded_poc_selected_ref_qp = encode_context_ptr->max_coded_poc_selected_ref_qp;
@@ -733,7 +715,6 @@ void high_level_rc_input_picture_vbr(
             }
         }
 
-#if RC_UPDATE_TARGET_RATE
         selected_org_ref_qp = selected_ref_qp;
         if (sequence_control_set_ptr->intra_period_length != -1 && picture_control_set_ptr->picture_number % ((sequence_control_set_ptr->intra_period_length + 1)) == 0 &&
             (int32_t)picture_control_set_ptr->frames_in_sw > sequence_control_set_ptr->intra_period_length) {
@@ -792,7 +773,7 @@ void high_level_rc_input_picture_vbr(
                 }
             }
         }
-#endif
+
         picture_control_set_ptr->tables_updated = tables_updated;
         EbBool expensive_i_slice = EB_FALSE;
         // Looping over the window to find the percentage of bit allocation in each layer
@@ -889,7 +870,6 @@ void high_level_rc_input_picture_vbr(
             sequence_control_set_ptr->static_config.max_qp_allowed,
             picture_control_set_ptr->best_pred_qp);
 
-#if RC_UPDATE_TARGET_RATE
         if (picture_control_set_ptr->picture_number == 0) {
             high_level_rate_control_ptr->prev_intra_selected_ref_qp = selected_ref_qp;
             high_level_rate_control_ptr->prev_intra_org_selected_ref_qp = selected_ref_qp;
@@ -900,7 +880,6 @@ void high_level_rc_input_picture_vbr(
                 high_level_rate_control_ptr->prev_intra_org_selected_ref_qp = selected_org_ref_qp;
             }
         }
-#endif
         picture_control_set_ptr->target_bits_best_pred_qp = picture_control_set_ptr->pred_bits_ref_qp[picture_control_set_ptr->best_pred_qp];
 #if RC_PRINTS
         if (picture_control_set_ptr->slice_type == 2)
@@ -1537,14 +1516,12 @@ void frame_level_rc_feedback_picture_vbr(
             uint64_t target_bit_rate;
             uint64_t channel_bit_rate;
             uint64_t sum_bits_per_sw = 0;
-#if ADAPTIVE_PERCENTAGE
             if (sequence_control_set_ptr->static_config.look_ahead_distance != 0) {
                 if (parentpicture_control_set_ptr->tables_updated && parentpicture_control_set_ptr->percentage_updated) {
                     parentpicture_control_set_ptr->bits_per_sw_per_layer[0] =
                         (uint64_t)MAX((int64_t)parentpicture_control_set_ptr->bits_per_sw_per_layer[0] + (int64_t)parentpicture_control_set_ptr->total_num_bits - (int64_t)parentpicture_control_set_ptr->target_bits_best_pred_qp, 1);
                 }
             }
-#endif
 
             if (sequence_control_set_ptr->static_config.look_ahead_distance != 0 && sequence_control_set_ptr->intra_period_length != -1) {
                 for (temporal_layer_idex = 0; temporal_layer_idex < EB_MAX_TEMPORAL_LAYERS; temporal_layer_idex++) {
@@ -1559,13 +1536,11 @@ void frame_level_rc_feedback_picture_vbr(
                     MIN((int64_t)parentpicture_control_set_ptr->target_bit_rate * 3 / 4, (int64_t)(parentpicture_control_set_ptr->total_num_bits*context_ptr->frame_rate / (sequence_control_set_ptr->static_config.intra_period_length + 1)) >> RC_PRECISION))
                     *rate_percentage_layer_array[sequence_control_set_ptr->static_config.hierarchical_levels][temporal_layer_idex] / 100;
 
-#if ADAPTIVE_PERCENTAGE
                 if (sequence_control_set_ptr->static_config.look_ahead_distance != 0 && sequence_control_set_ptr->intra_period_length != -1) {
                     target_bit_rate = (uint64_t)((int64_t)parentpicture_control_set_ptr->target_bit_rate -
                         MIN((int64_t)parentpicture_control_set_ptr->target_bit_rate * 3 / 4, (int64_t)(parentpicture_control_set_ptr->total_num_bits*context_ptr->frame_rate / (sequence_control_set_ptr->static_config.intra_period_length + 1)) >> RC_PRECISION))
                         *parentpicture_control_set_ptr->bits_per_sw_per_layer[temporal_layer_idex] / sum_bits_per_sw;
                 }
-#endif                            
                 // update this based on temporal layers    
                 if (temporal_layer_idex == 0)
                     channel_bit_rate = (((target_bit_rate << (2 * RC_PRECISION)) / MAX(1, rate_control_layer_temp_ptr->frame_rate - (1 * context_ptr->frame_rate / (sequence_control_set_ptr->static_config.intra_period_length + 1)))) + RC_PRECISION_OFFSET) >> RC_PRECISION;
@@ -1874,9 +1849,7 @@ void high_level_rc_input_picture_cvbr(
     uint64_t                     min_la_bit_distance;
     uint32_t                     selected_ref_qp_table_index;
     uint32_t                     selected_ref_qp;
-#if RC_UPDATE_TARGET_RATE
     uint32_t                     selected_org_ref_qp;
-#endif
     uint32_t                     previous_selected_ref_qp = encode_context_ptr->previous_selected_ref_qp;
     uint64_t                     max_coded_poc = encode_context_ptr->max_coded_poc;
     uint32_t                     max_coded_poc_selected_ref_qp = encode_context_ptr->max_coded_poc_selected_ref_qp;
@@ -2166,7 +2139,7 @@ void high_level_rc_input_picture_cvbr(
                 }
             }
         }
-#if RC_UPDATE_TARGET_RATE
+
         selected_org_ref_qp = selected_ref_qp;
         if (sequence_control_set_ptr->intra_period_length != -1 && picture_control_set_ptr->picture_number % ((sequence_control_set_ptr->intra_period_length + 1)) == 0 &&
             (int32_t)picture_control_set_ptr->frames_in_sw > sequence_control_set_ptr->intra_period_length) {
@@ -2225,7 +2198,7 @@ void high_level_rc_input_picture_cvbr(
                 }
             }
         }
-#endif
+
         picture_control_set_ptr->tables_updated = tables_updated;
 
         // Looping over the window to find the percentage of bit allocation in each layer
@@ -2304,7 +2277,6 @@ void high_level_rc_input_picture_cvbr(
             sequence_control_set_ptr->static_config.max_qp_allowed,
             (uint8_t)((int)picture_control_set_ptr->best_pred_qp + delta_qp));
 
-#if RC_UPDATE_TARGET_RATE
         if (picture_control_set_ptr->picture_number == 0) {
             high_level_rate_control_ptr->prev_intra_selected_ref_qp = selected_ref_qp;
             high_level_rate_control_ptr->prev_intra_org_selected_ref_qp = selected_ref_qp;
@@ -2315,7 +2287,6 @@ void high_level_rc_input_picture_cvbr(
                 high_level_rate_control_ptr->prev_intra_org_selected_ref_qp = selected_org_ref_qp;
             }
         }
-#endif
 #if RC_PRINTS
         ////if (picture_control_set_ptr->slice_type == 2)
         {
@@ -2987,14 +2958,12 @@ void frame_level_rc_feedback_picture_cvbr(
             uint64_t target_bit_rate;
             uint64_t channel_bit_rate;
             uint64_t sum_bits_per_sw = 0;
-#if ADAPTIVE_PERCENTAGE
             if (sequence_control_set_ptr->static_config.look_ahead_distance != 0) {
                 if (parentpicture_control_set_ptr->tables_updated && parentpicture_control_set_ptr->percentage_updated) {
                     parentpicture_control_set_ptr->bits_per_sw_per_layer[0] =
                         (uint64_t)MAX((int64_t)parentpicture_control_set_ptr->bits_per_sw_per_layer[0] + (int64_t)parentpicture_control_set_ptr->total_num_bits - (int64_t)parentpicture_control_set_ptr->target_bits_best_pred_qp, 1);
                 }
             }
-#endif
 
             if (sequence_control_set_ptr->static_config.look_ahead_distance != 0 && sequence_control_set_ptr->intra_period_length != -1) {
                 for (temporal_layer_idex = 0; temporal_layer_idex < EB_MAX_TEMPORAL_LAYERS; temporal_layer_idex++) {
@@ -3009,13 +2978,11 @@ void frame_level_rc_feedback_picture_cvbr(
                     MIN((int64_t)parentpicture_control_set_ptr->target_bit_rate * 3 / 4, (int64_t)(parentpicture_control_set_ptr->total_num_bits*context_ptr->frame_rate / (sequence_control_set_ptr->static_config.intra_period_length + 1)) >> RC_PRECISION))
                     *rate_percentage_layer_array[sequence_control_set_ptr->static_config.hierarchical_levels][temporal_layer_idex] / 100;
 
-#if ADAPTIVE_PERCENTAGE
                 if (sequence_control_set_ptr->static_config.look_ahead_distance != 0 && sequence_control_set_ptr->intra_period_length != -1) {
                     target_bit_rate = (uint64_t)((int64_t)parentpicture_control_set_ptr->target_bit_rate -
                         MIN((int64_t)parentpicture_control_set_ptr->target_bit_rate * 3 / 4, (int64_t)(parentpicture_control_set_ptr->total_num_bits*context_ptr->frame_rate / (sequence_control_set_ptr->static_config.intra_period_length + 1)) >> RC_PRECISION))
                         *parentpicture_control_set_ptr->bits_per_sw_per_layer[temporal_layer_idex] / sum_bits_per_sw;
                 }
-#endif                            
                 // update this based on temporal layers    
                 if (temporal_layer_idex == 0)
                     channel_bit_rate = (((target_bit_rate << (2 * RC_PRECISION)) / MAX(1, rate_control_layer_temp_ptr->frame_rate - (1 * context_ptr->frame_rate / (sequence_control_set_ptr->static_config.intra_period_length + 1)))) + RC_PRECISION_OFFSET) >> RC_PRECISION;
@@ -3281,9 +3248,7 @@ void init_rc(
     context_ptr->high_level_rate_control_ptr->channel_bit_rate_per_sw = context_ptr->high_level_rate_control_ptr->channel_bit_rate_per_frame * (sequence_control_set_ptr->static_config.look_ahead_distance + 1);
     context_ptr->high_level_rate_control_ptr->bit_constraint_per_sw = context_ptr->high_level_rate_control_ptr->channel_bit_rate_per_sw;
 
-#if RC_UPDATE_TARGET_RATE
     context_ptr->high_level_rate_control_ptr->previous_updated_bit_constraint_per_sw = context_ptr->high_level_rate_control_ptr->channel_bit_rate_per_sw;
-#endif
 
     int32_t total_frame_in_interval = sequence_control_set_ptr->intra_period_length;
     uint32_t gopPeriod = (1 << picture_control_set_ptr->parent_pcs_ptr->hierarchical_levels);

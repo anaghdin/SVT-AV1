@@ -440,9 +440,6 @@ int32_t set_parent_pcs(EbSvtAv1EncConfiguration*   config) {
         fps        = fps < 24  ? 24    : fps; 
         ppcs_count = MAX(min_ppcs_count, fps);
         ppcs_count = ((ppcs_count * 4) >> 1);  // 2 sec worth of internal buffering
-#if RC
-        ppcs_count = (ppcs_count + config->look_ahead_distance);
-#endif    
         return (int32_t) ppcs_count;
     }
     else{
@@ -2641,7 +2638,7 @@ static EbErrorType VerifySettings(
     }
 #endif
 #if RC
-    if ((config->rate_control_mode == 3|| config->rate_control_mode == 2) && config->look_ahead_distance != config->intra_period_length) {
+    if ((config->rate_control_mode == 3|| config->rate_control_mode == 2) && config->look_ahead_distance != (uint32_t)config->intra_period_length) {
         SVT_LOG("Error Instance %u: The rate control mode 2/3 LAD must be equal to IntraPeriod \n", channelNumber + 1);
         return_error = EB_ErrorBadParameter;
     }
