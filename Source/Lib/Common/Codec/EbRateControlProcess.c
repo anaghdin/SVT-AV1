@@ -3997,9 +3997,11 @@ void* rate_control_kernel(void *input_ptr)
                 picture_control_set_ptr->parent_pcs_ptr->picture_qp = picture_control_set_ptr->picture_qp;
             }
             else {
-                picture_control_set_ptr->picture_qp = rate_control_get_quantizer(rc_model_ptr, picture_control_set_ptr->parent_pcs_ptr);
                 // ***Rate Control***
-                if (sequence_control_set_ptr->static_config.rate_control_mode == 2) {
+                if (sequence_control_set_ptr->static_config.rate_control_mode == 1) {
+                    picture_control_set_ptr->picture_qp = rate_control_get_quantizer(rc_model_ptr, picture_control_set_ptr->parent_pcs_ptr);
+                }
+                else if (sequence_control_set_ptr->static_config.rate_control_mode == 2) {
                     frame_level_rc_input_picture_vbr(
                         picture_control_set_ptr,
                         sequence_control_set_ptr,
@@ -4014,6 +4016,7 @@ void* rate_control_kernel(void *input_ptr)
                         rate_control_param_ptr,
                         prev_gop_rate_control_param_ptr,
                         next_gop_rate_control_param_ptr);
+                    
                 }
                 else if (sequence_control_set_ptr->static_config.rate_control_mode == 3) {
 
