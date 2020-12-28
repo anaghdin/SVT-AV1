@@ -4088,7 +4088,7 @@ void store_gf_group(
             pcs->gf_interval = 1 + mg_size;
         }
         else {
-            if (pcs->slice_type == P_SLICE)
+            if (pcs->slice_type == P_SLICE && mg_size > 0 && ctx->mg_pictures_array[mg_size - 1]->idr_flag)
                 mg_size = MAX(0, (int)mg_size - 1);
             EB_MEMCPY(&pcs->gf_group[0], ctx->mg_pictures_array, mg_size * sizeof(PictureParentControlSet*));
             pcs->gf_interval = mg_size;
